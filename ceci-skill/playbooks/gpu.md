@@ -10,7 +10,7 @@ hosts:
     "bus-id-or-*": { priority: int, models: [string] }
 ```
 
-Hostnames match `[A-Za-z0-9._-]+`. Quote every bus id. `*` means any device on that host, not a guessed PCI id. `priority` is an integer. `models` is a flow list of exact model names. `ceci-skill/examples/gpu-prefs.yaml` is a shape example with no real hostnames. Do not point a run at it unless that file was the supplied flag.
+Hostnames match `[A-Za-z0-9._-]+`. Quote every bus id. `*` means any device on that host, not a guessed PCI id. `priority` is an integer. `models` is a flow list of exact model names. `examples/gpu-prefs.yaml` (from the skill root) is a shape example with no real hostnames. Do not point a run at it unless that file was the supplied flag.
 
 ## Choose
 

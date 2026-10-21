@@ -462,6 +462,42 @@ node --test ceci-skill/tool/ceci.test.js
 
 The file checks init, GPU priority and `--busy`, one-line logs, and `status` grouping. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run.
 
+## Harnesses
+
+The same skill loads in Hermes, Claude Code, Grok, and Codex. Generated trees are real files. Codex and Grok copy a plugin without following a symlink that points out of it, and a Hermes URL install does not follow symlinks either.
+
+| Harness | In this repository | Install command writes |
+| --- | --- | --- |
+| Claude Code | `.claude/skills/ceci` → `ceci-skill`, plus `.claude/commands/ceci.md` and [CLAUDE.md](CLAUDE.md) | `$CLAUDE_HOME/skills/ceci` or `~/.claude/skills/ceci` |
+| Grok | `.grok/skills/ceci` → `ceci-skill`, plus [.grok/rules.md](.grok/rules.md) | `$GROK_HOME/skills/ceci` or `~/.grok/skills/ceci` |
+| Codex | `.agents/skills/ceci` → `ceci-skill`, plus the skill section of [AGENTS.md](AGENTS.md) | `$CODEX_HOME/skills/ceci`, else `$AGENTS_HOME/skills/ceci`, else `~/.agents/skills/ceci` |
+| Hermes | [integrations/hermes](integrations/hermes) (`scripts/`, `references/`, `examples/`) | `$HERMES_HOME/skills/software-development/ceci` or `~/.hermes/skills/software-development/ceci` |
+
+Claude Code, Codex, and Grok can also install the marketplace plugin. [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) points at [plugins/ceci](plugins/ceci), whose `skills/ceci` directory is a byte copy of `ceci-skill/`, not a symlink.
+
+```bash
+node scripts/install.js --claude
+node scripts/install.js --grok
+node scripts/install.js --codex
+node scripts/install.js --hermes
+node scripts/install.js --all
+```
+
+Hermes from a URL, when the raw file is reachable:
+
+```text
+hermes skills install https://raw.githubusercontent.com/coldcanuk/ceci/main/integrations/hermes/SKILL.md
+```
+
+That copy drops Claude's `disable-model-invocation` key, keeps the first sentence of the description inside Hermes' 57-character index, and names `scripts/ceci.js`, `references/*.md`, and `examples/gpu-prefs.yaml` so the installer fetches them. The slash command is `/ceci`.
+
+After a change to `ceci-skill/`, regenerate the copies and fail if they drift:
+
+```bash
+node scripts/sync-integrations.js
+node scripts/sync-integrations.js --check
+```
+
 ## Agents changing this repository
 
 [AGENTS.md](AGENTS.md) is the git rule. Do not commit on `main`. Use a new worktree, commit there, push, and merge a pull request into `main`.
