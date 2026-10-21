@@ -45,6 +45,7 @@ function hermesFiles(root = ROOT) {
   const files = new Map();
   files.set('SKILL.md', { text: hermes.renderHub(fs.readFileSync(path.join(skill, 'SKILL.md'), 'utf8')), exec: false });
   files.set('scripts/ceci.js', { text: fs.readFileSync(path.join(skill, 'tool', 'ceci.js'), 'utf8'), exec: false });
+  files.set('scripts/package.json', { text: fs.readFileSync(path.join(skill, 'package.json'), 'utf8'), exec: false });
   for (const name of fs.readdirSync(path.join(skill, 'playbooks')).sort()) {
     files.set(`references/${name}`, { text: fs.readFileSync(path.join(skill, 'playbooks', name), 'utf8'), exec: false });
   }

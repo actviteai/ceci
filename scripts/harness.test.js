@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('assert');
+const { spawnSync } = require('child_process');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
@@ -49,4 +50,26 @@ test('install writes a real skill tree for each harness', () => {
   assert.deepEqual(hermes.checkFrontmatter(hermesSkill), []);
   assert.equal(fs.existsSync(path.join(layout.hermes, 'scripts/ceci.js')), true);
   assert.equal(fs.existsSync(path.join(layout.hermes, 'tool/ceci.js')), false);
+});
+
+test('installed engine runs under an ancestor package.json type module', () => {
+  const parent = fs.mkdtempSync(path.join(os.tmpdir(), 'ceci-esm-parent-'));
+  fs.writeFileSync(path.join(parent, 'package.json'), '{"type":"module"}\n');
+  const layout = {
+    claude: path.join(parent, 'claude', 'skills', 'ceci'),
+    grok: path.join(parent, 'grok', 'skills', 'ceci'),
+    codex: path.join(parent, 'agents', 'skills', 'ceci'),
+    hermes: path.join(parent, 'hermes', 'skills', 'software-development', 'ceci'),
+  };
+  installer.install({ root: ROOT, layout, harnesses: installer.IDS });
+  for (const file of [
+    path.join(layout.grok, 'tool/ceci.js'),
+    path.join(layout.claude, 'tool/ceci.js'),
+    path.join(layout.codex, 'tool/ceci.js'),
+    path.join(layout.hermes, 'scripts/ceci.js'),
+  ]) {
+    const result = spawnSync(process.execPath, [file], { encoding: 'utf8' });
+    assert.equal(result.status, 2, `${file}\n${result.stderr}`);
+    assert.match(result.stderr, /usage: ceci/);
+  }
 });
