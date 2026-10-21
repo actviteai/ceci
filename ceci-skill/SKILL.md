@@ -42,7 +42,7 @@ jobs:
 ```
 ## CLI
 The skill uses `tool/ceci.js` (zero-dependency Node):
-- `ceci init --work-dir PATH`
+- `ceci init --work-dir PATH` — creates any missing `brief.md`, `state.md`, or `log.md`. It does not overwrite a file that exists. It does not record a deadline.
 - `ceci status --work-dir PATH`
 - `ceci resolve-gpu --work-dir PATH --model NAME`
 - `ceci log --work-dir PATH --line TEXT`

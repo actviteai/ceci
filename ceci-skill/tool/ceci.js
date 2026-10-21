@@ -248,10 +248,10 @@ function commandInit(args) {
   fs.mkdirSync(dir, { recursive: true });
   const files = ['brief.md', 'state.md', 'log.md'];
   const existing = files.filter((name) => fs.existsSync(path.join(dir, name)));
-  if (existing.length) die(`refusing to overwrite ${existing.join(', ')}`, 1);
-  fs.writeFileSync(path.join(dir, 'brief.md'), BRIEF);
-  fs.writeFileSync(path.join(dir, 'state.md'), STATE);
-  fs.writeFileSync(path.join(dir, 'log.md'), '');
+  if (existing.length === files.length) die(`refusing to overwrite ${existing.join(', ')}`, 1);
+  if (!existing.includes('brief.md')) fs.writeFileSync(path.join(dir, 'brief.md'), BRIEF);
+  if (!existing.includes('state.md')) fs.writeFileSync(path.join(dir, 'state.md'), STATE);
+  if (!existing.includes('log.md')) fs.writeFileSync(path.join(dir, 'log.md'), '');
 }
 
 function commandStatus(args) {

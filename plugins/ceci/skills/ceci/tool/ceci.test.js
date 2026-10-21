@@ -47,6 +47,19 @@ test('init writes the three templates and will not overwrite them', () => {
   assert.match(again.stderr, /refusing to overwrite/);
 });
 
+test('init fills a missing file and leaves an existing brief untouched', () => {
+  const dir = tmp();
+  fs.writeFileSync(path.join(dir, 'brief.md'), 'keep\n');
+  const filled = run(['init', '--work-dir', dir]);
+  assert.equal(filled.status, 0, filled.stderr);
+  assert.equal(fs.readFileSync(path.join(dir, 'brief.md'), 'utf8'), 'keep\n');
+  assert.equal(fs.readFileSync(path.join(dir, 'state.md'), 'utf8'), 'jobs: []\n');
+  assert.equal(fs.readFileSync(path.join(dir, 'log.md'), 'utf8'), '');
+  const again = run(['init', '--work-dir', dir]);
+  assert.equal(again.status, 1);
+  assert.equal(fs.readFileSync(path.join(dir, 'brief.md'), 'utf8'), 'keep\n');
+});
+
 test('resolve-gpu picks the highest-priority free match and exports CUDA', () => {
   const dir = tmp();
   assert.equal(run(['init', '--work-dir', dir]).status, 0);
