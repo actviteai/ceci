@@ -78,7 +78,7 @@ There is no `--price` flag.
 
 ## Work directory
 
-`ceci init --work-dir PATH` creates the directory if needed and writes three files. If any of the three already exist, init exits `1` and leaves them untouched.
+`ceci init --work-dir PATH` creates the directory if needed and writes any missing file among `brief.md`, `state.md`, and `log.md`. It does not overwrite a file that already exists. If all three exist, init exits `1` and leaves them untouched.
 
 ### `brief.md`
 
