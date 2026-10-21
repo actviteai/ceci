@@ -38,3 +38,10 @@ git branch -d <type>/<task>
 ```
 
 Do not `git commit` while `git branch --show-current` is `main`.
+
+## Skill
+
+When the user types `/ceci`, read `ceci-skill/SKILL.md` and follow it for that task only. Do not use it for other requests.
+
+Codex loads `.agents/skills/ceci`. Claude Code loads `.claude/skills/ceci` and `.claude/commands/ceci.md`. Grok loads `.grok/skills/ceci`. Hermes loads `integrations/hermes`. The tool is `tool/ceci.js` in the same folder as `SKILL.md`.
+

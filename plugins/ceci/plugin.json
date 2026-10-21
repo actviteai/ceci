@@ -1,0 +1,18 @@
+{
+  "name": "ceci",
+  "version": "1.0.0",
+  "description": "Job graph, human gates, GPU placement, and /rdap-q evidence calls. Invoke with /ceci.",
+  "author": {
+    "name": "coldcanuk"
+  },
+  "homepage": "https://github.com/coldcanuk/ceci",
+  "keywords": [
+    "ceci",
+    "job-graph",
+    "human-gates",
+    "rdap-q"
+  ],
+  "skills": [
+    "./skills/ceci"
+  ]
+}
