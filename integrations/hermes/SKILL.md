@@ -58,5 +58,6 @@ Prefer these commands over free-form file writes.
 - `references/gpu.md` — preference YAML, CUDA env, fallback, logging.
 - `references/rdapq.md` — when and how to call /rdap-q, how to store the gate.
 - `examples/gpu-prefs.yaml` — preference-file shape; no real hostnames.
+- `scripts/package.json` — keeps the engine CommonJS when an ancestor package.json sets "type": "module".
 ## Done
 A run ends when the next action is a human gate, the deadline is reached, or no ready jobs remain. Hand back the current state.md and the blank-price line if an offer exists.

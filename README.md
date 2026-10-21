@@ -47,7 +47,7 @@ ceci/
 
 ## Requirements
 
-- Node.js 22 or newer. `ceci-skill/tool/ceci.js` has no package dependencies.
+- Node.js 22 or newer. `ceci-skill/tool/ceci.js` has no package dependencies. `ceci-skill/package.json` sets `"type": "commonjs"` so that file still runs when an ancestor `package.json` sets `"type": "module"`.
 - Git, only if you are changing this repository. See [AGENTS.md](AGENTS.md).
 - `/rdap-q` available to the same harness when a job changes code, data, a pipeline, or a model. A `rdapq` binary on `PATH` is the same engine. ceci does not embed a path to it.
 
