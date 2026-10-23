@@ -141,3 +141,8 @@ test('npm pack ships only tracked files, even from a dirty checkout', (t) => {
   });
   assert.deepEqual(untracked, []);
 });
+
+test('repository links point at actviteai, not the old coldcanuk repos', () => {
+  const res = spawnSync('git', ['grep', '-nE', '(^|[^@])coldcanuk/(ceci|rdapq)', '--', '.', ':!scripts/package.test.js'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(res.stdout, '', res.stdout);
+});

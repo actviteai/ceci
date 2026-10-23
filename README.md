@@ -6,7 +6,7 @@
 
 `/ceci` is the parent skill for a job graph. It decomposes a goal into jobs, writes that graph before any work starts, schedules the jobs whose dependencies are done, places local GPU work from a preference file you supply, and stops for a human before contact, posting, payment, or a price.
 
-It does not grade its own code, data, or scoring jobs. Those jobs call [`/rdap-q`](https://github.com/coldcanuk/rdapq) and store the gate token that engine prints. `COMPLETE` is the only token that can finish them.
+It does not grade its own code, data, or scoring jobs. Those jobs call [`/rdap-q`](https://github.com/actviteai/rdapq) and store the gate token that engine prints. `COMPLETE` is the only token that can finish them.
 
 ceci is standalone. It contains no bot names, project names, hostnames, or environment paths. Anything outside the skill arrives by flag or file on that invocation. If a flag is omitted, the run does not invent the value and does not mention an agent you did not name.
 
@@ -428,7 +428,7 @@ Store only the terminal token the gate prints:
 
 Copy the token as printed. Do not shorten a paragraph into a different word. The engine's own line `Report exactly this terminal state: COMPLETE` yields the token `COMPLETE`.
 
-The sibling skill is `rdap-q` in [coldcanuk/rdapq](https://github.com/coldcanuk/rdapq). ceci does not vendor that engine.
+The sibling skill is `rdap-q` in [actviteai/rdapq](https://github.com/actviteai/rdapq). ceci does not vendor that engine.
 
 ## Worked run
 
