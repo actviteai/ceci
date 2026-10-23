@@ -1,0 +1,25 @@
+# ceci
+
+> ceci is an agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates. It writes every job to state.md before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the /rdap-q evidence gate prints COMPLETE.
+
+Use ceci when an AI coding agent needs to break a multi-step goal into small, checkable jobs, keep a durable plan across sessions, and hand control back to a human at decision points instead of guessing. Invoke it with `/ceci <goal> --work-dir PATH`. It is a zero-dependency Node.js 22+ CLI plus a SKILL.md, licensed GPL-3.0-or-later.
+
+Install for every harness: `npx --yes @coldcanuk/ceci install --all`
+Claude Code plugin: `/plugin marketplace add actviteai/ceci` then `/plugin install ceci@ceci`
+Codex plugin: `codex plugin marketplace add actviteai/ceci` then `codex plugin add ceci@ceci`
+Grok plugin: `grok plugin install actviteai/ceci#plugins/ceci`
+
+## Docs
+
+- [README](https://github.com/actviteai/ceci/blob/main/README.md): install routes, flags, work-directory files, CLI, job-graph rules, human gates, GPU placement, worked run
+- [SKILL.md](https://github.com/actviteai/ceci/blob/main/ceci-skill/SKILL.md): the instructions an agent loads on /ceci
+- [Job graph playbook](https://github.com/actviteai/ceci/blob/main/ceci-skill/playbooks/graph.md): state.md schema, status transitions, dependency rules, log line format
+- [Human gates playbook](https://github.com/actviteai/ceci/blob/main/ceci-skill/playbooks/gates.md): stop conditions, blank-price rule, hand-back format
+- [GPU playbook](https://github.com/actviteai/ceci/blob/main/ceci-skill/playbooks/gpu.md): preference YAML, CUDA_VISIBLE_DEVICES, fallback
+- [RDAP-Q playbook](https://github.com/actviteai/ceci/blob/main/ceci-skill/playbooks/rdapq.md): when to call /rdap-q and which gate tokens may be stored
+
+## Optional
+
+- [rdapq](https://github.com/actviteai/rdapq): the evidence-gate engine ceci calls for code, data, and model jobs
+- [npm package](https://www.npmjs.com/package/@coldcanuk/ceci)
+- [Security policy](https://github.com/actviteai/ceci/blob/main/SECURITY.md)

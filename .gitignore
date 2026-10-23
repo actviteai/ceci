@@ -10,8 +10,6 @@
 .rdapq/
 *.rdapq.tmp
 *.rdapq.bak
-# Pack bookkeeping written by scripts/materialize-skill-links.js
-.ceci-pack-state.json
 
 # ------------------------------------------------------------------------------
 # Git worktrees (AGENTS.md: every task runs in .worktrees/<task>)
@@ -40,25 +38,11 @@ secrets.json
 # ------------------------------------------------------------------------------
 # AI agent & harness artifacts
 # ------------------------------------------------------------------------------
-# Agent harness folders are local by default: settings, sessions, caches,
-# and other skills never get committed. Only the files this repository
-# ships are un-ignored.
-.claude/*
-!.claude/commands/
-.claude/commands/*
-!.claude/commands/ceci.md
-!.claude/skills/
-.claude/skills/*
-!.claude/skills/ceci
-.grok/*
-!.grok/rules.md
-!.grok/skills/
-.grok/skills/*
-!.grok/skills/ceci
-.agents/*
-!.agents/skills/
-.agents/skills/*
-!.agents/skills/ceci
+# Agent harness folders are local to each machine and never committed.
+# Install the skill with `ceci install` or a plugin marketplace instead.
+.claude/
+.grok/
+.agents/
 .agent/
 .codex/
 .copilot/

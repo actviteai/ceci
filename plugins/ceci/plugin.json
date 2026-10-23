@@ -1,7 +1,7 @@
 {
   "name": "ceci",
   "version": "1.0.0",
-  "description": "Job graph, human gates, GPU placement, and /rdap-q evidence calls. Invoke with /ceci.",
+  "description": "Agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
   "author": {
     "name": "coldcanuk",
     "email": "chuck@actvite.com",
@@ -10,9 +10,20 @@
   "homepage": "https://github.com/actviteai/ceci",
   "keywords": [
     "ceci",
+    "agent-skill",
     "job-graph",
-    "human-gates",
-    "rdap-q"
+    "task-graph",
+    "dag",
+    "human-in-the-loop",
+    "approval-gates",
+    "gpu-scheduling",
+    "cuda",
+    "agent-orchestration",
+    "rdap-q",
+    "claude-code",
+    "codex",
+    "grok",
+    "hermes"
   ],
   "skills": [
     "./skills/ceci"
