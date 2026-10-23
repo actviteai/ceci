@@ -1,6 +1,6 @@
 # ceci
 
-> ceci is an agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates. It writes every job to state.md before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the /rdap-q evidence gate prints COMPLETE.
+> ceci is an agent skill for Claude Code, Codex, Grok, Cline, Goose, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates. It writes every job to state.md before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the /rdap-q evidence gate prints COMPLETE.
 
 Use ceci when an AI coding agent needs to break a multi-step goal into small, checkable jobs, keep a durable plan across sessions, and hand control back to a human at decision points instead of guessing. Invoke it with `/ceci <goal> --work-dir PATH`. It is a zero-dependency Node.js 22+ CLI plus a SKILL.md, licensed GPL-3.0-or-later.
 
@@ -8,6 +8,8 @@ Install for every harness: `npx --yes @coldcanuk/ceci install --all`
 Claude Code plugin: `/plugin marketplace add actviteai/ceci` then `/plugin install ceci@ceci`
 Codex plugin: `codex plugin marketplace add actviteai/ceci` then `codex plugin add ceci@ceci`
 Grok plugin: `grok plugin install actviteai/ceci#plugins/ceci`
+Cline: `npx --yes @coldcanuk/ceci install --cline` (writes ~/.cline/skills/ceci; run with /ceci)
+Goose: `npx --yes @coldcanuk/ceci install --goose` (writes ~/.agents/skills/ceci; load with /skills ceci)
 
 ## Docs
 

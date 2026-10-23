@@ -109,9 +109,10 @@ test('.gitignore keeps every agent harness folder out of the repository', () => 
     '.claude/settings.local.json', '.claude/commands/ceci.md', '.claude/skills/ceci/SKILL.md',
     '.grok/rules.md', '.grok/skills/ceci/SKILL.md', '.agents/skills/ceci/SKILL.md',
     '.agent/x', '.codex/x', '.copilot/x', '.ceci/x', '.rdapq/x', '.worktrees/x',
+    '.cline/skills/ceci/SKILL.md', '.clinerules', '.clinerules/ceci.md', '.goose/x', '.goosehints',
   ]) assert.equal(ignored(rel), true, `${rel} should be ignored`);
   assert.equal(ignored('.claude-plugin/marketplace.json'), false, 'the plugin marketplace manifest stays tracked');
-  const tracked = spawnSync('git', ['ls-files', '.claude', '.grok', '.agents', '.agent', '.codex', '.copilot'], { cwd: ROOT, encoding: 'utf8' }).stdout;
+  const tracked = spawnSync('git', ['ls-files', '.claude', '.grok', '.agents', '.agent', '.codex', '.copilot', '.cline', '.goose', '.clinerules', '.goosehints'], { cwd: ROOT, encoding: 'utf8' }).stdout;
   assert.equal(tracked, '');
   assert.equal(spawnSync('git', ['ls-files', '-ci', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8' }).stdout, '');
 });
@@ -130,7 +131,7 @@ test('package and plugin descriptions match and name every harness', () => {
   const market = require('../.claude-plugin/marketplace.json');
   const descriptions = [pkg.description, market.plugins[0].description, require('../.claude-plugin/plugin.json').description, require('../plugins/ceci/plugin.json').description];
   assert.equal(new Set(descriptions).size, 1);
-  for (const word of ['Claude Code', 'Codex', 'Grok', 'Hermes', '/ceci', '/rdap-q']) assert.ok(pkg.description.includes(word), word);
+  for (const word of ['Claude Code', 'Codex', 'Grok', 'Cline', 'Goose', 'Hermes', '/ceci', '/rdap-q']) assert.ok(pkg.description.includes(word), word);
   assert.ok(pkg.description.length <= 350, `${pkg.description.length} characters`);
 });
 
@@ -144,6 +145,8 @@ test('README and llms.txt list the same verified install commands', () => {
     'codex plugin marketplace add actviteai/ceci',
     'codex plugin add ceci@ceci',
     'grok plugin install actviteai/ceci#plugins/ceci',
+    'npx --yes @coldcanuk/ceci install --cline',
+    'npx --yes @coldcanuk/ceci install --goose',
   ]) {
     assert.ok(readme.includes(cmd), `README missing ${cmd}`);
     assert.ok(llms.includes(cmd), `llms.txt missing ${cmd}`);

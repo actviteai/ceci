@@ -1,7 +1,7 @@
 {
   "name": "@coldcanuk/ceci",
   "version": "1.0.0",
-  "description": "Agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
+  "description": "Agent skill for Claude Code, Codex, Grok, Cline, Goose, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
   "type": "commonjs",
   "main": "ceci-skill/SKILL.md",
   "bin": {
@@ -37,6 +37,8 @@
     "claude-code",
     "codex",
     "grok",
+    "cline",
+    "goose",
     "hermes",
     "claude-code-plugin",
     "claude-code-skill",
@@ -59,6 +61,8 @@
     "install:claude": "node bin/ceci.js install --claude",
     "install:codex": "node bin/ceci.js install --codex",
     "install:grok": "node bin/ceci.js install --grok",
+    "install:cline": "node bin/ceci.js install --cline",
+    "install:goose": "node bin/ceci.js install --goose",
     "install:hermes": "node bin/ceci.js install --hermes"
   },
   "engines": {

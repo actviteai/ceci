@@ -43,5 +43,5 @@ Do not `git commit` while `git branch --show-current` is `main`.
 
 When the user types `/ceci`, read `ceci-skill/SKILL.md` and follow it for that task only. Do not use it for other requests.
 
-The repository commits no `.claude/`, `.agents/`, or `.grok/` folder. Claude Code, Codex, and Grok load the skill from the user skill directory that `ceci install` writes, or from the plugin marketplace in `.claude-plugin/`. Hermes loads `integrations/hermes`. The tool is `tool/ceci.js` in the same folder as `SKILL.md`.
+The repository commits no `.claude/`, `.agents/`, `.grok/`, `.cline/`, or `.goose/` folder, and no `.clinerules` or `.goosehints`. Claude Code, Codex, Grok, Cline, and Goose load the skill from the user skill directory that `ceci install` writes, or from the plugin marketplace in `.claude-plugin/`. Hermes loads `integrations/hermes`. The tool is `tool/ceci.js` in the same folder as `SKILL.md`.
 

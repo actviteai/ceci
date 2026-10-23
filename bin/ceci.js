@@ -4,7 +4,7 @@
 /**
  * npm entry point.
  *
- *   ceci install [--all|--claude|--grok|--codex|--hermes]   copy the skill into harness homes
+ *   ceci install [--all|--claude|--grok|--codex|--cline|--goose|--hermes]   copy the skill into harness homes
  *   ceci init|status|log|resolve-gpu --work-dir PATH ...     run the skill's tool
  */
 
@@ -17,7 +17,7 @@ const TOOL = path.join(ROOT, 'ceci-skill', 'tool', 'ceci.js');
 
 function usage() {
   return `Usage:
-  ceci install [--all] [--claude] [--grok] [--codex] [--hermes]
+  ceci install [--all] [--claude] [--grok] [--codex] [--cline] [--goose] [--hermes]
   ceci init|status|log|resolve-gpu --work-dir PATH [...]
   ceci --help | --version
 `;

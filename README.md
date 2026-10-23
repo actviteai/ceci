@@ -4,7 +4,7 @@
 [![ci](https://github.com/actviteai/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/actviteai/ceci/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
-**ceci is an agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates.** It writes every job to `state.md` before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the [`/rdap-q`](https://github.com/actviteai/rdapq) evidence gate prints `COMPLETE`.
+**ceci is an agent skill for Claude Code, Codex, Grok, Cline, Goose, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates.** It writes every job to `state.md` before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the [`/rdap-q`](https://github.com/actviteai/rdapq) evidence gate prints `COMPLETE`.
 
 ```bash
 npx --yes @coldcanuk/ceci install --all     # install the skill for every harness
@@ -59,7 +59,7 @@ ceci/
         └── ceci.test.js
 ```
 
-The repository commits no `.claude/`, `.agents/`, or `.grok/` folder; those are local to each machine and ignored. `ceci install` copies `ceci-skill/` into each harness's user skill directory (see [Harnesses](#harnesses)). Copy the `ceci-skill` directory next to `rdap-q-skill` when a harness wants both trees side by side. Do not rename the skill inside `SKILL.md`; the slash command is the frontmatter name `ceci`.
+The repository commits no `.claude/`, `.agents/`, `.grok/`, `.cline/`, `.goose/`, `.clinerules`, or `.goosehints`; those are local to each machine and ignored. `ceci install` copies `ceci-skill/` into each harness's user skill directory (see [Harnesses](#harnesses)). Copy the `ceci-skill` directory next to `rdap-q-skill` when a harness wants both trees side by side. Do not rename the skill inside `SKILL.md`; the slash command is the frontmatter name `ceci`.
 
 ## Requirements
 
@@ -69,18 +69,20 @@ The repository commits no `.claude/`, `.agents/`, or `.grok/` folder; those are 
 
 ## Install
 
-Pick one route. Each installs the same skill; `/ceci` is the slash command in every harness.
+Pick one route. Each installs the same skill. `/ceci` is the slash command in every harness except Goose, which loads it with `/skills ceci` or when you ask for ceci by name.
 
 ### npm (all harnesses)
 
 The npm package is [`@coldcanuk/ceci`](https://www.npmjs.com/package/@coldcanuk/ceci). It installs one command, `ceci`.
 
 ```bash
-# Copy the skill into every harness home (Claude Code, Grok, Codex, Hermes)
+# Copy the skill into every harness home (Claude Code, Grok, Codex, Cline, Goose, Hermes)
 npx --yes @coldcanuk/ceci install --all
 
 # Or name the harnesses you want
 npx --yes @coldcanuk/ceci install --claude --codex
+npx --yes @coldcanuk/ceci install --cline
+npx --yes @coldcanuk/ceci install --goose
 
 # Or install the CLI globally
 npm install -g @coldcanuk/ceci
@@ -554,16 +556,20 @@ npm test
 
 ## Harnesses
 
-The same skill loads in Hermes, Claude Code, Grok, and Codex. Generated trees are real files. Codex and Grok copy a plugin without following a symlink that points out of it, and a Hermes URL install does not follow symlinks either.
+The same skill loads in Claude Code, Grok, Codex, Cline, Goose, and Hermes. Generated trees are real files. Codex and Grok copy a plugin without following a symlink that points out of it, and a Hermes URL install does not follow symlinks either.
 
 | Harness | `ceci install` writes |
 | --- | --- |
 | Claude Code (`--claude`) | `$CLAUDE_HOME/skills/ceci` or `~/.claude/skills/ceci` |
 | Grok (`--grok`) | `$GROK_HOME/skills/ceci` or `~/.grok/skills/ceci` |
 | Codex (`--codex`) | `$CODEX_HOME/skills/ceci`, else `$AGENTS_HOME/skills/ceci`, else `~/.agents/skills/ceci` |
+| Cline (`--cline`) | `$CLINE_HOME/skills/ceci` or `~/.cline/skills/ceci` |
+| Goose (`--goose`) | `$AGENTS_HOME/skills/ceci` or `~/.agents/skills/ceci`, the folder Codex uses by default |
 | Hermes (`--hermes`) | `$HERMES_HOME/skills/software-development/ceci` or `~/.hermes/skills/software-development/ceci`, from [integrations/hermes](integrations/hermes) |
 
 Claude Code, Codex, and Grok can also install the marketplace plugin; the commands are under [Plugin marketplaces](#plugin-marketplaces). [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) points at [plugins/ceci](plugins/ceci), whose `skills/ceci` directory is a byte copy of `ceci-skill/`, not a symlink.
+
+Cline and Goose have no plugin marketplace route; use `ceci install --cline` or `--goose`. Cline enables discovered skills by default (toggle them under the Skills tab) and runs ceci as `/ceci`. Goose loads skills through its built-in Skills extension, which is on by default; type `/skills ceci` in the Goose CLI or ask for ceci by name. Both also read a project's `.claude/skills/`, and Goose reads `.agents/skills/`, so a project-level copy works too.
 
 The [Hermes URL install](#hermes-from-a-url) copy drops Claude's `disable-model-invocation` key, keeps the first sentence of the description inside Hermes' 57-character index, and names `scripts/ceci.js`, `references/*.md`, and `examples/gpu-prefs.yaml` so the installer fetches them. The slash command is `/ceci`.
 
