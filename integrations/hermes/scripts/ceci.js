@@ -19,6 +19,13 @@ const BRIEF = [
 
 const STATE = 'jobs: []\n';
 
+const USAGE = `usage: ceci init --work-dir PATH
+       ceci status --work-dir PATH
+       ceci log --work-dir PATH --line TEXT
+       ceci resolve-gpu --work-dir PATH --gpu-pref PATH --model NAME [--busy HOST:DEVICE ...]
+Flags take a value as the next argument or as --name=value.
+`;
+
 function die(message, code) {
   process.stderr.write(`${message}\n`);
   process.exit(code === undefined ? 2 : code);
@@ -32,11 +39,16 @@ function parseArgs(argv) {
       out._.push(arg);
       continue;
     }
-    const key = arg.slice(2);
+    const eq = arg.indexOf('=');
+    const key = eq === -1 ? arg.slice(2) : arg.slice(2, eq);
     if (!key) die('empty flag');
-    const value = argv[i + 1];
-    if (value === undefined || value.startsWith('--')) die(`missing value for --${key}`);
-    i += 1;
+    let value;
+    if (eq !== -1) value = arg.slice(eq + 1);
+    else {
+      value = argv[i + 1];
+      if (value === undefined || value.startsWith('--')) die(`missing value for --${key}`);
+      i += 1;
+    }
     if (Object.prototype.hasOwnProperty.call(out, key)) out[key] = [].concat(out[key], value);
     else out[key] = value;
   }
@@ -83,7 +95,21 @@ function parseFlow(raw) {
   if (!raw.endsWith(']')) throw new Error(`bad list ${raw}`);
   const inner = raw.slice(1, -1).trim();
   if (inner === '') return [];
-  return inner.split(',').map((part) => parseScalar(part.trim()));
+  // Split on commas outside double quotes, so a quoted item may hold a comma.
+  const parts = [];
+  let start = 0;
+  let quoted = false;
+  for (let i = 0; i < inner.length; i += 1) {
+    if (quoted && inner[i] === '\\') i += 1;
+    else if (inner[i] === '"') quoted = !quoted;
+    else if (!quoted && inner[i] === ',') {
+      parts.push(inner.slice(start, i));
+      start = i + 1;
+    }
+  }
+  if (quoted) throw new Error(`bad list ${raw}`);
+  parts.push(inner.slice(start));
+  return parts.map((part) => parseScalar(part.trim()));
 }
 
 function parseState(text) {
@@ -106,7 +132,11 @@ function parseState(text) {
     }
     const field = /^ {4}([a-z_]+):(?: (.*))?$/.exec(line);
     if (!field || !current) throw new Error(`bad state.md line ${i + 1}`);
-    current[field[1]] = parseScalar(field[2] === undefined ? '' : field[2]);
+    try {
+      current[field[1]] = parseScalar(field[2] === undefined ? '' : field[2]);
+    } catch (err) {
+      throw new Error(`state.md line ${i + 1}: ${err.message}`);
+    }
   }
   if (current) jobs.push(current);
   jobs.forEach(checkJob);
@@ -132,8 +162,11 @@ function checkJob(job) {
   if (!STATUSES.has(job.status)) throw new Error(`job ${job.id} has bad status`);
   if (job.gpu !== null && typeof job.gpu !== 'string') throw new Error(`job ${job.id} gpu must be null or a string`);
   if (job.rdapq_gate !== null && !GATES.has(job.rdapq_gate)) throw new Error(`job ${job.id} has bad rdapq_gate`);
-  if (path.isAbsolute(job.artifact) || job.artifact.split(/[\\/]/).includes('..')) {
+  if (path.posix.isAbsolute(job.artifact) || path.win32.isAbsolute(job.artifact) || job.artifact.split(/[\\/]/).includes('..')) {
     throw new Error(`job ${job.id} artifact must stay inside the work dir`);
+  }
+  if (job.artifact.split(/[\\/]/).every((part) => part === '' || part === '.')) {
+    throw new Error(`job ${job.id} artifact must name a file or directory, not the work dir`);
   }
 }
 
@@ -145,7 +178,8 @@ function checkGraph(jobs) {
   });
   jobs.forEach((job) => {
     job.depends_on.forEach((dep) => {
-      if (dep === job.id || !ids.has(dep)) throw new Error(`job ${job.id} depends on unknown ${dep}`);
+      if (dep === job.id) throw new Error(`job ${job.id} depends on itself`);
+      if (!ids.has(dep)) throw new Error(`job ${job.id} depends on unknown ${dep}`);
     });
   });
   const color = new Map();
@@ -227,6 +261,13 @@ function chooseGpu(entries, model, busy) {
   return matches[0] || null;
 }
 
+// CUDA_VISIBLE_DEVICES takes an index or a GPU/MIG UUID. It stops at the first
+// entry it cannot parse, so a PCI bus id there would hide every device.
+function cudaDevice(bus) {
+  if (/^\d+$/.test(bus) || /^(GPU|MIG)-[A-Za-z0-9/-]+$/.test(bus)) return bus;
+  return null;
+}
+
 function graphProblems(dir, jobs) {
   const problems = [];
   const byId = new Map(jobs.map((job) => [job.id, job]));
@@ -258,7 +299,7 @@ function commandStatus(args) {
   const dir = workDir(args);
   const jobs = readState(dir);
   const problems = graphProblems(dir, jobs);
-  ['ready', 'blocked', 'gate'].forEach((status) => {
+  ['ready', 'running', 'blocked', 'gate'].forEach((status) => {
     process.stdout.write(`${status}:\n`);
     jobs.filter((job) => job.status === status).forEach((job) => process.stdout.write(`- ${job.id}\n`));
   });
@@ -293,11 +334,21 @@ function commandGpu(args) {
   if (!chosen) die(`no gpu for ${model}`, 1);
   const value = `${chosen.host}:${chosen.bus}`;
   process.stdout.write(`${value}\nCUDA_DEVICE_ORDER=PCI_BUS_ID\n`);
-  if (chosen.bus !== '*') process.stdout.write(`CUDA_VISIBLE_DEVICES=${chosen.bus}\n`);
+  if (chosen.bus === '*') return;
+  const device = cudaDevice(chosen.bus);
+  if (device) process.stdout.write(`CUDA_VISIBLE_DEVICES=${device}\n`);
+  else {
+    process.stderr.write(`${chosen.bus} is a PCI bus id; CUDA_VISIBLE_DEVICES takes an index or UUID. `
+      + `On ${chosen.host}, find its index or uuid with: nvidia-smi --query-gpu=index,uuid,pci.bus_id --format=csv\n`);
+  }
 }
 
 function main(argv) {
   const [command, ...rest] = argv;
+  if ([command, ...rest].some((arg) => arg === '--help' || arg === '-h')) {
+    process.stdout.write(USAGE);
+    return;
+  }
   const args = parseArgs(rest);
   if (args._.length) die(`unexpected argument ${args._[0]}`);
   if (command === 'init') commandInit(args);
@@ -305,11 +356,18 @@ function main(argv) {
   else if (command === 'log') commandLog(args);
   else if (command === 'resolve-gpu') commandGpu(args);
   else {
-    die('usage: ceci init|status|log|resolve-gpu --work-dir PATH');
+    die(USAGE.trimEnd());
   }
 }
 
-if (require.main === module) main(process.argv.slice(2));
+if (require.main === module) {
+  // A reader that closes early (status | head) is not an error.
+  process.stdout.on('error', (err) => {
+    if (err.code === 'EPIPE') process.exit(0);
+    throw err;
+  });
+  main(process.argv.slice(2));
+}
 else {
   module.exports = { chooseGpu, formatState, parsePrefs, parseState };
 }

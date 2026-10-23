@@ -66,20 +66,108 @@ test('resolve-gpu picks the highest-priority free match and exports CUDA', () =>
   const chosen = run(['resolve-gpu', '--work-dir', dir, '--gpu-pref', PREFS, '--model', 'model-large']);
   assert.equal(chosen.status, 0, chosen.stderr);
   assert.equal(chosen.stdout, [
-    'host-a:0000:01:00.0',
+    'host-a:GPU-00000000-0000-0000-0000-00000000000a',
     'CUDA_DEVICE_ORDER=PCI_BUS_ID',
-    'CUDA_VISIBLE_DEVICES=0000:01:00.0',
+    'CUDA_VISIBLE_DEVICES=GPU-00000000-0000-0000-0000-00000000000a',
     '',
   ].join('\n'));
   const busy = run([
     'resolve-gpu', '--work-dir', dir, '--gpu-pref', PREFS, '--model', 'model-large',
-    '--busy', 'host-a:0000:01:00.0',
+    '--busy', 'host-a:GPU-00000000-0000-0000-0000-00000000000a',
   ]);
-  assert.equal(busy.stdout.split('\n')[0], 'host-b:0000:02:00.0');
+  assert.equal(busy.stdout, 'host-b:1\nCUDA_DEVICE_ORDER=PCI_BUS_ID\nCUDA_VISIBLE_DEVICES=1\n');
   const miss = run(['resolve-gpu', '--work-dir', dir, '--gpu-pref', PREFS, '--model', 'model-missing']);
   assert.equal(miss.status, 1);
   const noPref = run(['resolve-gpu', '--work-dir', dir, '--model', 'model-large']);
   assert.equal(noPref.status, 2);
+});
+
+test('resolve-gpu never puts a PCI bus id in CUDA_VISIBLE_DEVICES', () => {
+  // CUDA_VISIBLE_DEVICES takes indices or UUIDs. An entry it cannot parse
+  // hides that device and every device after it, so the job would see none.
+  const dir = tmp();
+  const prefs = path.join(dir, 'prefs.yaml');
+  fs.writeFileSync(prefs, 'hosts:\n  host-a:\n    "0000:01:00.0": { priority: 3, models: ["m"] }\n    "MIG-GPU-abc/1/0": { priority: 2, models: ["n"] }\n');
+  const pci = run(['resolve-gpu', '--work-dir', dir, '--gpu-pref', prefs, '--model', 'm']);
+  assert.equal(pci.status, 0, pci.stderr);
+  assert.equal(pci.stdout, 'host-a:0000:01:00.0\nCUDA_DEVICE_ORDER=PCI_BUS_ID\n');
+  assert.match(pci.stderr, /PCI bus id.*index or UUID/);
+  assert.match(pci.stderr, /nvidia-smi --query-gpu=index,uuid,pci\.bus_id --format=csv/);
+  const mig = run(['resolve-gpu', '--work-dir', dir, '--gpu-pref', prefs, '--model', 'n']);
+  assert.equal(mig.stdout, 'host-a:MIG-GPU-abc/1/0\nCUDA_DEVICE_ORDER=PCI_BUS_ID\nCUDA_VISIBLE_DEVICES=MIG-GPU-abc/1/0\n');
+  assert.equal(mig.stderr, '');
+});
+
+test('state.md round-trips quoted list items that contain commas and brackets', () => {
+  const { formatState, parseState } = require('./ceci.js');
+  const jobs = [
+    { id: 'a,b', goal: 'x', owner: 'self', depends_on: [], schedule: 'once', status: 'done', done_test: 't', artifact: 'a.txt', gpu: null, rdapq_gate: null },
+    { id: 'c]', goal: 'y: z', owner: 'self', depends_on: ['a,b'], schedule: 'once', status: 'ready', done_test: 't', artifact: 'c.txt', gpu: null, rdapq_gate: null },
+  ];
+  assert.deepEqual(parseState(formatState(jobs)), jobs);
+  const { parsePrefs } = require('./ceci.js');
+  assert.deepEqual(parsePrefs('hosts:\n  h:\n    "0": { priority: 1, models: ["a,b", "c"] }\n')[0].models, ['a,b', 'c']);
+});
+
+test('a done job needs a real artifact path, not the work dir itself', () => {
+  for (const artifact of ['""', '.', './', 'C:\\run\\x.txt', '"\\\\\\\\server\\\\share"']) {
+    const dir = tmp();
+    run(['init', '--work-dir', dir]);
+    fs.writeFileSync(path.join(dir, 'state.md'), `jobs:\n  - id: a\n    goal: g\n    owner: self\n    depends_on: []\n    schedule: once\n    status: done\n    done_test: t\n    artifact: ${artifact}\n    gpu: null\n    rdapq_gate: null\n`);
+    const res = run(['status', '--work-dir', dir]);
+    assert.equal(res.status, 1, `${artifact}: ${res.stdout}`);
+    assert.match(res.stderr, /artifact/, artifact);
+  }
+});
+
+test('an empty field names its line', () => {
+  const dir = tmp();
+  run(['init', '--work-dir', dir]);
+  fs.writeFileSync(path.join(dir, 'state.md'), 'jobs:\n  - id: a\n    goal:\n');
+  const res = run(['status', '--work-dir', dir]);
+  assert.equal(res.status, 1);
+  assert.match(res.stderr, /line 3/);
+});
+
+test('status lists running jobs so an interrupted run can resume them', () => {
+  const dir = tmp();
+  run(['init', '--work-dir', dir]);
+  fs.writeFileSync(path.join(dir, 'state.md'), state([{
+    id: 'build', goal: 'g', owner: 'self', depends_on: [], schedule: 'once', status: 'running',
+    done_test: 't', artifact: 'b.txt', gpu: null, rdapq_gate: null,
+  }]));
+  const res = run(['status', '--work-dir', dir]);
+  assert.equal(res.status, 0, res.stderr);
+  assert.equal(res.stdout, 'ready:\nrunning:\n- build\nblocked:\ngate:\n');
+});
+
+test('flags accept --name=value, so a log line may start with dashes', () => {
+  const dir = tmp();
+  run(['init', '--work-dir', dir]);
+  const res = run(['log', `--work-dir=${dir}`, '--line=-- a | b | done | c']);
+  assert.equal(res.status, 0, res.stderr);
+  assert.equal(fs.readFileSync(path.join(dir, 'log.md'), 'utf8'), '-- a | b | done | c\n');
+});
+
+test('--help prints usage and exits 0 for every command', () => {
+  for (const args of [['--help'], ['status', '--help'], ['resolve-gpu', '-h']]) {
+    const res = run(args);
+    assert.equal(res.status, 0, `${args.join(' ')}: ${res.stderr}`);
+    assert.match(res.stdout, /resolve-gpu --work-dir PATH --gpu-pref PATH --model NAME/);
+  }
+});
+
+test('status exits quietly when its reader closes the pipe', () => {
+  const dir = tmp();
+  run(['init', '--work-dir', dir]);
+  const jobs = Array.from({ length: 4000 }, (_, i) => ({
+    id: `j${i}`, goal: 'g', owner: 'self', depends_on: [], schedule: 'once', status: 'ready',
+    done_test: 't', artifact: `j${i}.txt`, gpu: null, rdapq_gate: null,
+  }));
+  fs.writeFileSync(path.join(dir, 'state.md'), state(jobs));
+  const res = spawnSync('sh', ['-c', `"${process.execPath}" "${CLI}" status --work-dir "${dir}" | head -n 1`], { encoding: 'utf8' });
+  assert.equal(res.stdout, 'ready:\n');
+  assert.doesNotMatch(res.stderr, /EPIPE|Error/);
 });
 
 test('log appends one line and status prints ready, blocked, and gate', () => {
@@ -101,7 +189,7 @@ test('log appends one line and status prints ready, blocked, and gate', () => {
   assert.equal(fs.existsSync(path.join(dir, 'score.txt')), false);
   const listed = run(['status', '--work-dir', dir]);
   assert.equal(listed.status, 0, listed.stderr);
-  assert.equal(listed.stdout, 'ready:\n- score\nblocked:\n- offer\ngate:\n');
+  assert.equal(listed.stdout, 'ready:\n- score\nrunning:\nblocked:\n- offer\ngate:\n');
   const line = '2026-10-21T02:19Z | score | ready | graph written first';
   assert.equal(run(['log', '--work-dir', dir, '--line', line]).status, 0);
   assert.equal(fs.readFileSync(path.join(dir, 'log.md'), 'utf8'), `${line}\n`);
@@ -147,6 +235,7 @@ function completeGate(enginePath) {
 test('a scoring job stores the rdap-q token and the run stops with a blank price', (t) => {
   const bin = engine();
   if (!bin) {
+    assert.notEqual(process.env.CECI_REQUIRE_RDAPQ, '1', 'CECI_REQUIRE_RDAPQ is set but no rdap-q engine was found');
     t.skip('rdap-q engine not supplied');
     return;
   }
@@ -198,7 +287,7 @@ test('a scoring job stores the rdap-q token and the run stops with a blank price
   assert.equal(fs.existsSync(path.join(dir, 'offer.md')), false);
   assert.equal(run(['log', '--work-dir', dir, '--line', '2026-10-21T02:20Z | offer | gate | price blank']).status, 0);
   assert.equal(fs.readFileSync(path.join(dir, 'log.md'), 'utf8').trim().split('\n').length, 2);
-  assert.equal(run(['status', '--work-dir', dir]).stdout, 'ready:\nblocked:\ngate:\n- offer\n');
+  assert.equal(run(['status', '--work-dir', dir]).stdout, 'ready:\nrunning:\nblocked:\ngate:\n- offer\n');
   const stored = fs.readFileSync(path.join(dir, 'state.md'), 'utf8');
   assert.match(stored, /rdapq_gate: COMPLETE/);
   assert.doesNotMatch(stored, /price/);

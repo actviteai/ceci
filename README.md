@@ -204,7 +204,7 @@ jobs:
     status: ready | running | blocked | done | gate
     done_test: string
     artifact: path
-    gpu: null | "host:bus-id"
+    gpu: null | "host:device"
     rdapq_gate: null | COMPLETE | STALLED | BLOCKED | MISSING_TEST
 ```
 
@@ -213,9 +213,9 @@ The CLI accepts only this subset:
 - The file is `jobs: []` or starts with `jobs:`.
 - Each job starts with two spaces, a dash, and `id`. Later keys are indented four spaces, in the order above.
 - Lists are flow lists: `[]` or `[score, offer]`.
-- Quote a scalar that contains `:`, a space, or is empty. Quote `gpu` whenever the bus id contains colons: `gpu: "host-a:0000:01:00.0"`.
+- A plain value is read as written, spaces and colons included. Use a double-quoted, JSON-escaped string for a value that is empty, is the word `null`, starts with `"` or `[`, or is a list item that contains a comma. `ceci` itself quotes more often so the file stays valid YAML: `gpu: "host-a:GPU-00000000-0000-0000-0000-00000000000a"`.
 - `gpu: null` and `rdapq_gate: null` are the empty values.
-- `artifact` is relative to `--work-dir`. Absolute paths and `..` are rejected.
+- `artifact` is relative to `--work-dir` and names something inside it. Absolute paths (POSIX or Windows), `..`, and the work dir itself (`""`, `.`) are rejected.
 - Unknown keys are rejected. There is no `price` key. Adding one makes `ceci status` fail.
 
 `owner` is an id you supplied for that job, or `self`. `schedule` is `once` or `cron`. A cron expression is not a separate field; put the cadence in `goal` or `done_test` if the job needs it.
@@ -238,11 +238,13 @@ Use `ceci log`. Do not append a second line for the same change, and do not writ
 
 ## CLI
 
-Run it with Node from a checkout:
+Run it as `ceci` after `npm install -g @coldcanuk/ceci`, as `npx --yes @coldcanuk/ceci <command>`, or with Node from a checkout or an installed skill directory:
 
 ```bash
 node ceci-skill/tool/ceci.js <command> --work-dir PATH
 ```
+
+Every flag takes its value as the next argument or as `--name=value`. Use the second form for a value that starts with `--`. `--help` on any command prints the usage and exits `0`.
 
 The skill refers to that command as `ceci`. Prefer the CLI over hand-editing when the command exists. The graph itself is still written as `state.md`; there is no `ceci add-job` command. Write the graph in the subset above, then use `status` to check it.
 
@@ -260,11 +262,12 @@ Creates `brief.md`, `state.md`, and `log.md`. Refuses to overwrite.
 node ceci-skill/tool/ceci.js status --work-dir /path/to/run
 ```
 
-Prints stored jobs in three groups. Jobs in `running` or `done` are not listed; they remain in `state.md`.
+Prints stored jobs in four groups. A `running` job after an interrupted session is the one to resume. `done` jobs are not listed; they remain in `state.md`.
 
 ```text
 ready:
 - score
+running:
 blocked:
 - offer
 gate:
@@ -283,17 +286,17 @@ node ceci-skill/tool/ceci.js resolve-gpu \
   --work-dir /path/to/run \
   --gpu-pref /path/to/gpu-prefs.yaml \
   --model model-large \
-  --busy host-a:0000:01:00.0
+  --busy host-b:1
 ```
 
 `--work-dir` must be an existing directory. `--gpu-pref` and `--model` are required. Repeat `--busy` for each occupied device. The command does not call `nvidia-smi` and does not read a default path.
 
-Stdout on a specific bus:
+Stdout when the winner is a UUID or an index:
 
 ```text
-host-a:0000:01:00.0
+host-a:GPU-00000000-0000-0000-0000-00000000000a
 CUDA_DEVICE_ORDER=PCI_BUS_ID
-CUDA_VISIBLE_DEVICES=0000:01:00.0
+CUDA_VISIBLE_DEVICES=GPU-00000000-0000-0000-0000-00000000000a
 ```
 
 The first line is what you store in the job's `gpu` field before that job runs. Export the other lines into the environment of the local process.
@@ -305,14 +308,16 @@ host-a:*
 CUDA_DEVICE_ORDER=PCI_BUS_ID
 ```
 
-`CUDA_VISIBLE_DEVICES` is omitted. `*` means any device on that host, not a PCI address the tool invented.
+`CUDA_VISIBLE_DEVICES` is omitted. `*` means any device on that host, not a device the tool invented.
+
+A PCI bus id key (`"0000:01:00.0"`) prints the first two lines only. CUDA reads `CUDA_VISIBLE_DEVICES` as indices or UUIDs and hides every device from the first entry it cannot parse, so a bus id there would leave the job with no GPU. stderr names the `nvidia-smi --query-gpu=index,uuid,pci.bus_id --format=csv` call that maps it on that host. Prefer UUID keys.
 
 Selection order:
 
 1. Keep entries whose `models` list contains the model name exactly.
-2. Drop entries named by `--busy` as `HOST:BUS` (split on the first colon, so bus ids may contain colons).
+2. Drop entries named by `--busy` as `HOST:DEVICE` (split on the first colon, so a device may contain colons).
 3. Highest `priority` wins.
-4. Equal priority: a real bus id beats `*`, then hostname, then bus id, in byte order.
+4. Equal priority: a specific device beats `*`, then hostname, then device, in byte order.
 
 No match exits `1` and the GPU job does not start.
 
@@ -352,7 +357,7 @@ Each job needs:
 | `status` | One of the five values below. |
 | `done_test` | A check a later run can apply without rereading the chat. |
 | `artifact` | Relative path that will exist when the job is done. |
-| `gpu` | `null`, or `host:bus-id` from `resolve-gpu`. |
+| `gpu` | `null`, or `host:device` from `resolve-gpu`. |
 | `rdapq_gate` | `null` until `/rdap-q` prints a terminal token. |
 
 Dependencies:
@@ -451,23 +456,23 @@ Preference file:
 ```yaml
 hosts:
   hostname:
-    "bus-id-or-*": { priority: int, models: [string] }
+    "device-or-*": { priority: int, models: [string] }
 ```
 
-Hostnames match `[A-Za-z0-9._-]+`. Quote every bus id. `priority` is an integer. `models` is a flow list of exact model names.
+Hostnames match `[A-Za-z0-9._-]+`. Quote every device key: a GPU or MIG UUID from `nvidia-smi -L` (preferred), an integer index in PCI bus order, a PCI bus id, or `*`. `priority` is an integer. `models` is a flow list of exact model names.
 
 ```yaml
 hosts:
   host-a:
-    "0000:01:00.0": { priority: 10, models: ["model-large"] }
+    "GPU-00000000-0000-0000-0000-00000000000a": { priority: 10, models: ["model-large"] }
     "*": { priority: 1, models: ["model-small"] }
   host-b:
-    "0000:02:00.0": { priority: 5, models: ["model-large", "model-small"] }
+    "1": { priority: 5, models: ["model-large", "model-small"] }
 ```
 
-For `model-large` with nothing busy, the winner is `host-a:0000:01:00.0` (priority 10). If that bus is passed as `--busy host-a:0000:01:00.0`, the winner is `host-b:0000:02:00.0` (priority 5). `host-a:*` is only a `model-small` fallback at priority 1, and it does not set `CUDA_VISIBLE_DEVICES`.
+For `model-large` with nothing busy, the winner is `host-a:GPU-00000000-0000-0000-0000-00000000000a` (priority 10). If that device is passed as `--busy host-a:GPU-00000000-0000-0000-0000-00000000000a`, the winner is `host-b:1` (priority 5). `host-a:*` is only a `model-small` fallback at priority 1, and it does not set `CUDA_VISIBLE_DEVICES`.
 
-Record the chosen `host:bus-id` on the job, export the CUDA lines for the local process, and mention the choice in that job's one log line.
+Record the chosen `host:device` on the job, export the CUDA lines for the local process, and mention the choice in that job's one log line.
 
 ## `/rdap-q`
 
@@ -552,7 +557,7 @@ npm test
 
 `npm test` checks that the generated harness copies match `ceci-skill/`, then runs `ceci-skill/tool/ceci.test.js`, `scripts/harness.test.js`, and `scripts/package.test.js`. The package test covers the `ceci` bin, the npm `files` list, that a dirty checkout cannot pack untracked files, and that agent harness folders stay ignored.
 
-`ceci-skill/tool/ceci.test.js` checks init, GPU priority and `--busy`, one-line logs, and `status` grouping. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run.
+`ceci-skill/tool/ceci.test.js` checks init, GPU priority, `--busy`, and the CUDA lines it may print, one-line logs, `status` grouping, `state.md` round trips, and flag parsing. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run. CI checks out a pinned `actviteai/rdapq` and sets `CECI_REQUIRE_RDAPQ=1`, which turns that skip into a failure.
 
 ## Harnesses
 
