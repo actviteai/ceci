@@ -1,6 +1,6 @@
 {
   "name": "ceci",
-  "description": "ceci job graph for Claude Code, Codex, and Grok.",
+  "description": "ceci: job-graph orchestration with human-in-the-loop gates for Claude Code, Codex, and Grok agents.",
   "owner": {
     "name": "coldcanuk",
     "email": "chuck@actvite.com"
@@ -9,7 +9,7 @@
     {
       "name": "ceci",
       "version": "1.0.0",
-      "description": "Job graph, human gates, GPU placement, and /rdap-q evidence calls. Invoke with /ceci.",
+      "description": "Agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
       "category": "development",
       "author": {
         "name": "coldcanuk",
@@ -19,9 +19,20 @@
       "homepage": "https://github.com/actviteai/ceci",
       "tags": [
         "ceci",
+        "agent-skill",
         "job-graph",
-        "human-gates",
-        "rdap-q"
+        "task-graph",
+        "dag",
+        "human-in-the-loop",
+        "approval-gates",
+        "gpu-scheduling",
+        "cuda",
+        "agent-orchestration",
+        "rdap-q",
+        "claude-code",
+        "codex",
+        "grok",
+        "hermes"
       ],
       "source": "./plugins/ceci"
     }

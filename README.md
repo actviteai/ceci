@@ -4,6 +4,18 @@
 [![ci](https://github.com/actviteai/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/actviteai/ceci/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
+**ceci is an agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates.** It writes every job to `state.md` before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the [`/rdap-q`](https://github.com/actviteai/rdapq) evidence gate prints `COMPLETE`.
+
+```bash
+npx --yes @coldcanuk/ceci install --all     # install the skill for every harness
+```
+
+```text
+/ceci <goal> --work-dir ./run                # invoke it in your agent
+```
+
+Zero dependencies. Node.js 22+. GPL-3.0-or-later.
+
 `/ceci` is the parent skill for a job graph. It decomposes a goal into jobs, writes that graph before any work starts, schedules the jobs whose dependencies are done, places local GPU work from a preference file you supply, and stops for a human before contact, posting, payment, or a price.
 
 It does not grade its own code, data, or scoring jobs. Those jobs call [`/rdap-q`](https://github.com/actviteai/rdapq) and store the gate token that engine prints. `COMPLETE` is the only token that can finish them.
@@ -47,7 +59,7 @@ ceci/
         └── ceci.test.js
 ```
 
-[`.agents/skills/ceci`](.agents/skills/ceci) is a symlink to `ceci-skill/`. Harnesses that scan `.agents/skills/` load `/ceci` the same way they load `/rdap-q` from a sibling checkout of `rdap-q-skill`. Copy the `ceci-skill` directory next to `rdap-q-skill` when a harness wants both trees side by side. Do not rename the skill inside `SKILL.md`; the slash command is the frontmatter name `ceci`.
+The repository commits no `.claude/`, `.agents/`, or `.grok/` folder; those are local to each machine and ignored. `ceci install` copies `ceci-skill/` into each harness's user skill directory (see [Harnesses](#harnesses)). Copy the `ceci-skill` directory next to `rdap-q-skill` when a harness wants both trees side by side. Do not rename the skill inside `SKILL.md`; the slash command is the frontmatter name `ceci`.
 
 ## Requirements
 
@@ -56,6 +68,10 @@ ceci/
 - `/rdap-q` available to the same harness when a job changes code, data, a pipeline, or a model. A `rdapq` binary on `PATH` is the same engine. ceci does not embed a path to it.
 
 ## Install
+
+Pick one route. Each installs the same skill; `/ceci` is the slash command in every harness.
+
+### npm (all harnesses)
 
 The npm package is [`@coldcanuk/ceci`](https://www.npmjs.com/package/@coldcanuk/ceci). It installs one command, `ceci`.
 
@@ -73,13 +89,55 @@ ceci init --work-dir ./run
 ceci status --work-dir ./run
 ```
 
-`ceci install` replaces an existing ceci skill directory with a fresh copy. Each copy is staged first and renamed into place only after `SKILL.md` is present. Every other `ceci` command (`init`, `status`, `log`, `resolve-gpu`) goes to `ceci-skill/tool/ceci.js`; see [CLI](#cli).
+`ceci install` replaces an existing ceci skill directory with a fresh copy. Each copy is staged first and renamed into place only after `SKILL.md` is present. Where each harness's copy lands is listed under [Harnesses](#harnesses). Every other `ceci` command (`init`, `status`, `log`, `resolve-gpu`) goes to `ceci-skill/tool/ceci.js`; see [CLI](#cli).
 
-To install from GitHub instead of the npm registry:
+The same commands work straight from GitHub, without the npm registry:
 
 ```bash
 npx --yes github:actviteai/ceci install --all
 ```
+
+### Plugin marketplaces
+
+This repository is also a plugin marketplace named `ceci`, holding one plugin named `ceci` ([plugins/ceci](plugins/ceci)).
+
+Claude Code, inside a session:
+
+```text
+/plugin marketplace add actviteai/ceci
+/plugin install ceci@ceci
+```
+
+Codex:
+
+```bash
+codex plugin marketplace add actviteai/ceci
+codex plugin add ceci@ceci
+```
+
+Grok:
+
+```bash
+grok plugin install actviteai/ceci#plugins/ceci
+```
+
+### Hermes from a URL
+
+```bash
+hermes skills install https://raw.githubusercontent.com/actviteai/ceci/main/integrations/hermes/SKILL.md
+```
+
+### From a clone
+
+```bash
+git clone https://github.com/actviteai/ceci.git
+cd ceci
+node scripts/install.js --all     # or: npm run install:all
+```
+
+### Also install `/rdap-q`
+
+Jobs that change code, data, or a model call `/rdap-q`. Install it in the same harness by following the [rdapq README](https://github.com/actviteai/rdapq#readme). Jobs that only produce documents or human gates run without it.
 
 ## Invoke `/ceci`
 
@@ -490,7 +548,7 @@ A later invocation continues only from that gate, and only with a price you actu
 npm test
 ```
 
-`npm test` checks that the generated harness copies match `ceci-skill/`, then runs `ceci-skill/tool/ceci.test.js`, `scripts/harness.test.js`, and `scripts/package.test.js`. The package test covers the `ceci` bin, the npm `files` list, and the `prepack` step that turns the `.claude`, `.agents`, and `.grok` skill symlinks into real directories for the tarball.
+`npm test` checks that the generated harness copies match `ceci-skill/`, then runs `ceci-skill/tool/ceci.test.js`, `scripts/harness.test.js`, and `scripts/package.test.js`. The package test covers the `ceci` bin, the npm `files` list, that a dirty checkout cannot pack untracked files, and that agent harness folders stay ignored.
 
 `ceci-skill/tool/ceci.test.js` checks init, GPU priority and `--busy`, one-line logs, and `status` grouping. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run.
 
@@ -498,32 +556,16 @@ npm test
 
 The same skill loads in Hermes, Claude Code, Grok, and Codex. Generated trees are real files. Codex and Grok copy a plugin without following a symlink that points out of it, and a Hermes URL install does not follow symlinks either.
 
-| Harness | In this repository | Install command writes |
-| --- | --- | --- |
-| Claude Code | `.claude/skills/ceci` → `ceci-skill`, plus `.claude/commands/ceci.md` and [CLAUDE.md](CLAUDE.md) | `$CLAUDE_HOME/skills/ceci` or `~/.claude/skills/ceci` |
-| Grok | `.grok/skills/ceci` → `ceci-skill`, plus [.grok/rules.md](.grok/rules.md) | `$GROK_HOME/skills/ceci` or `~/.grok/skills/ceci` |
-| Codex | `.agents/skills/ceci` → `ceci-skill`, plus the skill section of [AGENTS.md](AGENTS.md) | `$CODEX_HOME/skills/ceci`, else `$AGENTS_HOME/skills/ceci`, else `~/.agents/skills/ceci` |
-| Hermes | [integrations/hermes](integrations/hermes) (`scripts/`, `references/`, `examples/`) | `$HERMES_HOME/skills/software-development/ceci` or `~/.hermes/skills/software-development/ceci` |
+| Harness | `ceci install` writes |
+| --- | --- |
+| Claude Code (`--claude`) | `$CLAUDE_HOME/skills/ceci` or `~/.claude/skills/ceci` |
+| Grok (`--grok`) | `$GROK_HOME/skills/ceci` or `~/.grok/skills/ceci` |
+| Codex (`--codex`) | `$CODEX_HOME/skills/ceci`, else `$AGENTS_HOME/skills/ceci`, else `~/.agents/skills/ceci` |
+| Hermes (`--hermes`) | `$HERMES_HOME/skills/software-development/ceci` or `~/.hermes/skills/software-development/ceci`, from [integrations/hermes](integrations/hermes) |
 
-Claude Code, Codex, and Grok can also install the marketplace plugin. [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) points at [plugins/ceci](plugins/ceci), whose `skills/ceci` directory is a byte copy of `ceci-skill/`, not a symlink.
+Claude Code, Codex, and Grok can also install the marketplace plugin; the commands are under [Plugin marketplaces](#plugin-marketplaces). [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) points at [plugins/ceci](plugins/ceci), whose `skills/ceci` directory is a byte copy of `ceci-skill/`, not a symlink.
 
-```bash
-npx --yes @coldcanuk/ceci install --claude
-npx --yes @coldcanuk/ceci install --grok
-npx --yes @coldcanuk/ceci install --codex
-npx --yes @coldcanuk/ceci install --hermes
-npx --yes @coldcanuk/ceci install --all
-```
-
-From a clone, `node scripts/install.js --all` (or `npm run install:all`) does the same thing.
-
-Hermes from a URL, when the raw file is reachable:
-
-```text
-hermes skills install https://raw.githubusercontent.com/actviteai/ceci/main/integrations/hermes/SKILL.md
-```
-
-That copy drops Claude's `disable-model-invocation` key, keeps the first sentence of the description inside Hermes' 57-character index, and names `scripts/ceci.js`, `references/*.md`, and `examples/gpu-prefs.yaml` so the installer fetches them. The slash command is `/ceci`.
+The [Hermes URL install](#hermes-from-a-url) copy drops Claude's `disable-model-invocation` key, keeps the first sentence of the description inside Hermes' 57-character index, and names `scripts/ceci.js`, `references/*.md`, and `examples/gpu-prefs.yaml` so the installer fetches them. The slash command is `/ceci`.
 
 After a change to `ceci-skill/`, regenerate the copies and fail if they drift:
 
