@@ -2,7 +2,7 @@
   "name": "ceci",
   "version": "1.0.0",
   "displayName": "ceci",
-  "description": "Agent skill for Claude Code, Codex, Grok, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
+  "description": "Agent skill for Claude Code, Codex, Grok, Cline, Goose, and Hermes that turns a goal into a job graph, runs ready jobs in dependency order, stops at human gates before contact, posting, payment, or pricing, places GPU jobs, and gates code changes with /rdap-q. Invoke with /ceci.",
   "author": {
     "name": "coldcanuk",
     "email": "chuck@actvite.com",
@@ -28,6 +28,8 @@
     "claude-code",
     "codex",
     "grok",
+    "cline",
+    "goose",
     "hermes"
   ]
 }

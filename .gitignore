@@ -47,14 +47,15 @@ secrets.json
 .codex/
 .copilot/
 *.claude.json
+.cline/
+.goose/
+/.clinerules
+/.goosehints
 
 # Hermes
 .hermes/
 
-# Cline, Goose, Cursor, Windsurf
-.cline/history/
-.cline/sessions/
-.goose/
+# Cursor, Windsurf
 .cursor/
 .windsurf/
 

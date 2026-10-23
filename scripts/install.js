@@ -1,11 +1,11 @@
 'use strict';
 
 /**
- * Copy ceci into the skill directories Hermes, Claude Code, Grok, and Codex read.
+ * Copy ceci into the skill directories Claude Code, Grok, Codex, Cline, Goose, and Hermes read.
  * Writes real files. Never follows or publishes a symlink.
  *
  *   node scripts/install.js --all
- *   node scripts/install.js --claude --grok --codex --hermes
+ *   node scripts/install.js --claude --grok --codex --cline --goose --hermes
  */
 
 const fs = require('fs');
@@ -14,7 +14,7 @@ const path = require('path');
 const hermes = require('../lib/hermes');
 const sync = require('./sync-integrations');
 
-const IDS = ['claude', 'grok', 'codex', 'hermes'];
+const IDS = ['claude', 'grok', 'codex', 'cline', 'goose', 'hermes'];
 
 function exists(target) {
   try {
@@ -63,6 +63,9 @@ function layoutFrom(env, platform = process.platform) {
     claude: path.join(env.CLAUDE_HOME || path.join(home, '.claude'), 'skills', 'ceci'),
     grok: path.join(env.GROK_HOME || path.join(home, '.grok'), 'skills', 'ceci'),
     codex: path.join(env.CODEX_HOME || env.AGENTS_HOME || path.join(home, '.agents'), 'skills', 'ceci'),
+    cline: path.join(env.CLINE_HOME || path.join(home, '.cline'), 'skills', 'ceci'),
+    // Goose reads ~/.agents/skills, the folder Codex uses by default.
+    goose: path.join(env.AGENTS_HOME || path.join(home, '.agents'), 'skills', 'ceci'),
     hermes: path.join(hermesHome, 'skills', hermes.CATEGORY, hermes.NAME),
   };
 }
@@ -84,6 +87,12 @@ function install({ root, layout, harnesses, log = () => {} }) {
   for (const id of harnesses) {
     if (!IDS.includes(id)) throw new Error(`unknown harness ${id}`);
     const dest = layout[id];
+    const same = installed.find((done) => done.dest === dest);
+    if (same) {
+      log(`${id}: ${dest} (shared with ${same.id})`);
+      installed.push({ id, dest });
+      continue;
+    }
     if (id === 'hermes') {
       const staged = stageHermes(root);
       try {
@@ -114,7 +123,7 @@ function parseArgs(argv) {
 }
 
 function helpText() {
-  return `Usage: node scripts/install.js [--all] [--claude] [--grok] [--codex] [--hermes]
+  return `Usage: node scripts/install.js [--all] [--claude] [--grok] [--codex] [--cline] [--goose] [--hermes]
 
 Copy the ceci skill into the directory each harness reads.
 Existing skill directories are replaced with a fresh copy.
@@ -122,8 +131,10 @@ Existing skill directories are replaced with a fresh copy.
   --claude   ~/.claude/skills/ceci          (or $CLAUDE_HOME/skills/ceci)
   --grok     ~/.grok/skills/ceci            (or $GROK_HOME/skills/ceci)
   --codex    ~/.agents/skills/ceci          (or $CODEX_HOME/skills/ceci, else $AGENTS_HOME)
+  --cline    ~/.cline/skills/ceci           (or $CLINE_HOME/skills/ceci)
+  --goose    ~/.agents/skills/ceci          (or $AGENTS_HOME/skills/ceci; shared with Codex)
   --hermes   ~/.hermes/skills/software-development/ceci
-  --all      all four
+  --all      all six
 `;
 }
 

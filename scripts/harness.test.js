@@ -37,10 +37,12 @@ test('install writes a real skill tree for each harness', () => {
     claude: path.join(root, 'claude', 'skills', 'ceci'),
     grok: path.join(root, 'grok', 'skills', 'ceci'),
     codex: path.join(root, 'agents', 'skills', 'ceci'),
+    cline: path.join(root, 'cline', 'skills', 'ceci'),
+    goose: path.join(root, 'goose-agents', 'skills', 'ceci'),
     hermes: path.join(root, 'hermes', 'skills', 'software-development', 'ceci'),
   };
   installer.install({ root: ROOT, layout, harnesses: installer.IDS });
-  for (const id of ['claude', 'grok', 'codex']) {
+  for (const id of ['claude', 'grok', 'codex', 'cline', 'goose']) {
     const skill = path.join(layout[id], 'SKILL.md');
     assert.equal(fs.lstatSync(skill).isSymbolicLink(), false, id);
     assert.equal(fs.readFileSync(skill, 'utf8'), fs.readFileSync(path.join(ROOT, 'ceci-skill/SKILL.md'), 'utf8'));
@@ -59,6 +61,8 @@ test('installed engine runs under an ancestor package.json type module', () => {
     claude: path.join(parent, 'claude', 'skills', 'ceci'),
     grok: path.join(parent, 'grok', 'skills', 'ceci'),
     codex: path.join(parent, 'agents', 'skills', 'ceci'),
+    cline: path.join(parent, 'cline', 'skills', 'ceci'),
+    goose: path.join(parent, 'goose-agents', 'skills', 'ceci'),
     hermes: path.join(parent, 'hermes', 'skills', 'software-development', 'ceci'),
   };
   installer.install({ root: ROOT, layout, harnesses: installer.IDS });
@@ -72,4 +76,15 @@ test('installed engine runs under an ancestor package.json type module', () => {
     assert.equal(result.status, 2, `${file}\n${result.stderr}`);
     assert.match(result.stderr, /usage: ceci/);
   }
+});
+
+test('Cline reads ~/.cline/skills and Goose reads ~/.agents/skills', () => {
+  const home = path.join(os.tmpdir(), 'ceci-layout-home');
+  const layout = installer.layoutFrom({ HOME: home }, 'linux');
+  assert.deepEqual(installer.IDS, ['claude', 'grok', 'codex', 'cline', 'goose', 'hermes']);
+  assert.equal(layout.cline, path.join(home, '.cline', 'skills', 'ceci'));
+  assert.equal(layout.goose, path.join(home, '.agents', 'skills', 'ceci'));
+  const moved = installer.layoutFrom({ HOME: home, CLINE_HOME: '/c', AGENTS_HOME: '/a', CODEX_HOME: '/x' }, 'linux');
+  assert.equal(moved.cline, path.join('/c', 'skills', 'ceci'));
+  assert.equal(moved.goose, path.join('/a', 'skills', 'ceci'));
 });
