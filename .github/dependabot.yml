@@ -1,0 +1,8 @@
+# Keep the workflow actions (checkout, setup-node) current.
+# The package has no npm dependencies, so only GitHub Actions is tracked.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"

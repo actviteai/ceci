@@ -1,0 +1,73 @@
+{
+  "name": "@coldcanuk/ceci",
+  "version": "1.0.0",
+  "description": "ceci \u2014 job graph, human gates, GPU placement, and /rdap-q evidence calls for AI coding agents. Invoke with /ceci. Claude Code, Codex, Grok, and Hermes.",
+  "type": "commonjs",
+  "main": "ceci-skill/SKILL.md",
+  "bin": {
+    "ceci": "./bin/ceci.js",
+    "ceci-install": "./bin/ceci.js"
+  },
+  "author": "coldcanuk",
+  "license": "GPL-3.0-or-later",
+  "homepage": "https://github.com/actviteai/ceci#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/actviteai/ceci.git"
+  },
+  "bugs": {
+    "url": "https://github.com/actviteai/ceci/issues"
+  },
+  "keywords": [
+    "ceci",
+    "job-graph",
+    "human-gates",
+    "rdap-q",
+    "ai-agent",
+    "coding-agent",
+    "agent-skills",
+    "claude-code",
+    "codex",
+    "grok",
+    "hermes"
+  ],
+  "scripts": {
+    "start": "node bin/ceci.js",
+    "test": "node scripts/sync-integrations.js --check && node --test --test-concurrency=1 ceci-skill/tool/ceci.test.js scripts/*.test.js",
+    "sync": "node scripts/sync-integrations.js",
+    "prepack": "node scripts/materialize-skill-links.js materialize",
+    "postpack": "node scripts/materialize-skill-links.js restore",
+    "install:all": "node bin/ceci.js install --all",
+    "install:claude": "node bin/ceci.js install --claude",
+    "install:codex": "node bin/ceci.js install --codex",
+    "install:grok": "node bin/ceci.js install --grok",
+    "install:hermes": "node bin/ceci.js install --hermes"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "files": [
+    "bin",
+    "ceci-skill",
+    "lib",
+    "scripts/install.js",
+    "scripts/sync-integrations.js",
+    "scripts/materialize-skill-links.js",
+    "integrations",
+    "plugins",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
+    ".claude-plugin",
+    ".claude/commands/ceci.md",
+    ".claude/skills/ceci",
+    ".grok/rules.md",
+    ".grok/skills/ceci",
+    ".agents/skills/ceci",
+    "!**/*.test.js"
+  ]
+}

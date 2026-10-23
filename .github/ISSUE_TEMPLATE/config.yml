@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Code of Conduct
+    url: https://github.com/actviteai/ceci/blob/main/CODE_OF_CONDUCT.md
+    about: be chill. be cool.
