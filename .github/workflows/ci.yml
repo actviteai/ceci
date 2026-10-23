@@ -23,5 +23,16 @@ jobs:
           node-version: ${{ matrix.node }}
       - name: Syntax-check the CLI
         run: node --check bin/ceci.js && node --check ceci-skill/tool/ceci.js && node --check scripts/install.js
+      # The rdap-q integration test skips without an engine. Run it against a
+      # pinned rdapq so a gate-format change cannot slip through as a skip.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: actviteai/rdapq
+          ref: ff628800ee6fe119ba2fabbe2f57e21854246c35
+          path: rdapq-engine
+          persist-credentials: false
       - name: Test the tool, install, packaging, and generated copies
+        env:
+          RDAPQ: ${{ github.workspace }}/rdapq-engine/rdap-q-skill/tool/rdapq.js
+          CECI_REQUIRE_RDAPQ: '1'
         run: npm test

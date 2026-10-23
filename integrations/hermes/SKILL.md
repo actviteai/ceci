@@ -25,11 +25,11 @@ In `--work-dir` (required):
 If a flag is absent, do not assume a value and do not reference any external agent.
 ## Rules
 1. Read `brief.md` and `state.md` first. If either is missing, run init behavior and stop.
-2. On a new goal, decompose into the smallest jobs that produce one inspectable artifact. Write the complete graph to `state.md` before starting any job. Each job has id, goal, owner, depends_on, schedule, status, done_test, artifact, gpu (optional), rdapq_gate (optional).
+2. On a new goal, decompose into the smallest jobs that produce one inspectable artifact. Write the complete graph to `state.md` before starting any job. Each job has id, goal, owner, depends_on, schedule, status, done_test, artifact, gpu, and rdapq_gate (gpu and rdapq_gate are null when unused).
 3. A job is done only when its done_test passes and the artifact exists. Update status and append one line to `log.md`.
 4. Human gates: stop and hand back before contact, post, pay, or setting a price. Leave the price blank. Mark unverified claims UNVERIFIED.
 5. For any job that changes code, data, or a model, call /rdap-q and store the exact gate output in rdapq_gate. COMPLETE is the only accepted terminal state for those jobs.
-6. GPU jobs: load the preference map, choose the highest-priority free match for the model, set CUDA_DEVICE_ORDER=PCI_BUS_ID and CUDA_VISIBLE_DEVICES, record the choice in the job.
+6. GPU jobs: run `ceci resolve-gpu` with the preference map, record its first line in the job's gpu field, and export the CUDA lines it prints for that job only. If it prints no CUDA_VISIBLE_DEVICES for a specific device, follow its stderr note before the job starts.
 7. After every job, update state.md and append exactly one line to log.md. Schedule the next ready job if one exists.
 ## State schema
 ```yaml
@@ -42,14 +42,14 @@ jobs:
     status: ready | running | blocked | done | gate
     done_test: string
     artifact: path
-    gpu: null | "host:bus-id"
+    gpu: null | "host:device"
     rdapq_gate: null | COMPLETE | STALLED | BLOCKED | MISSING_TEST
 ```
 ## CLI
 The skill uses `scripts/ceci.js` (zero-dependency Node). Run `node ${HERMES_SKILL_DIR}/scripts/ceci.js`.
 - `ceci init --work-dir PATH` — creates any missing `brief.md`, `state.md`, or `log.md`. It does not overwrite a file that exists. It does not record a deadline.
-- `ceci status --work-dir PATH`
-- `ceci resolve-gpu --work-dir PATH --model NAME`
+- `ceci status --work-dir PATH` — lists ready, running, blocked, and gate jobs; exits 1 if the graph is inconsistent.
+- `ceci resolve-gpu --work-dir PATH --gpu-pref PATH --model NAME [--busy HOST:DEVICE]`
 - `ceci log --work-dir PATH --line TEXT`
 Prefer these commands over free-form file writes.
 ## Playbooks

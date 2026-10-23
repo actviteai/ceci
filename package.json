@@ -5,8 +5,7 @@
   "type": "commonjs",
   "main": "ceci-skill/SKILL.md",
   "bin": {
-    "ceci": "./bin/ceci.js",
-    "ceci-install": "./bin/ceci.js"
+    "ceci": "bin/ceci.js"
   },
   "author": {
     "name": "coldcanuk",

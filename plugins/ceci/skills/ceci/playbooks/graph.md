@@ -14,11 +14,11 @@ jobs:
     status: ready | running | blocked | done | gate
     done_test: string
     artifact: path
-    gpu: null | "host:bus-id"
+    gpu: null | "host:device"
     rdapq_gate: null | COMPLETE | STALLED | BLOCKED | MISSING_TEST
 ```
 
-`jobs: []` is the empty graph. A job starts with `  - id:`. Other keys are indented four spaces, in the order above. Flow lists use `[]` or `[a, b]`. Quote a scalar that contains `:`, spaces, or an empty string. `gpu: null` and `rdapq_gate: null` are the empty values. Paths in `artifact` are relative to `--work-dir`, with no `..` segment.
+`jobs: []` is the empty graph. A job starts with `  - id:`. Other keys are indented four spaces, in the order above. Flow lists use `[]` or `[a, b]`. A plain value is read as written, spaces included. Use a double-quoted, JSON-escaped string for a value that is empty, is the word `null`, starts with `"` or `[`, or is a list item that contains a comma. `gpu: null` and `rdapq_gate: null` are the empty values. Paths in `artifact` are relative to `--work-dir`, with no `..` segment, and name a file or directory inside it (not `.`).
 
 `owner` is the value supplied for that job, or `self`. `schedule` is `once` or `cron`. Do not add keys the schema does not list.
 
@@ -39,7 +39,7 @@ jobs:
 - `gate` stays `gate` until the human answers.
 - `done` is terminal. Never move `blocked` straight to `done`.
 
-`ceci status` prints stored `ready`, `blocked`, and `gate` jobs and exits non-zero if a `done` job is missing its artifact, if `rdapq_gate` is set to anything but `COMPLETE` on a `done` job, or if a `ready` or `running` job has an unfinished dependency.
+`ceci status` prints stored `ready`, `running`, `blocked`, and `gate` jobs and exits non-zero if a `done` job is missing its artifact, if `rdapq_gate` is set to anything but `COMPLETE` on a `done` job, or if a `ready` or `running` job has an unfinished dependency.
 
 ## Log
 

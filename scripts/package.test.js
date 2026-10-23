@@ -18,7 +18,8 @@ function ceci(args, env = process.env) {
 test('package.json is the published npm package', () => {
   assert.equal(pkg.name, '@coldcanuk/ceci');
   assert.equal(pkg.license, 'GPL-3.0-or-later');
-  assert.equal(pkg.bin.ceci, './bin/ceci.js');
+  // One bin: npx runs it, and `ceci install` covers the installer.
+  assert.deepEqual(pkg.bin, { ceci: 'bin/ceci.js' });
   assert.equal(pkg.publishConfig.access, 'public');
   assert.equal(pkg.version, require('../.claude-plugin/plugin.json').version);
   assert.equal(pkg.version, require('../plugins/ceci/plugin.json').version);
@@ -125,6 +126,16 @@ test('package and plugin manifests name the actvite.com owner', () => {
   assert.deepEqual(market.plugins[0].author, author);
   assert.deepEqual(require('../.claude-plugin/plugin.json').author, author);
   assert.deepEqual(require('../plugins/ceci/plugin.json').author, author);
+});
+
+test('npm pkg fix leaves package.json alone, so publish keeps every field', () => {
+  // npm publish silently drops fields it has to correct (it removed "./bin/ceci.js" bins).
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'ceci-pkgfix-'));
+  const original = fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8');
+  fs.writeFileSync(path.join(dir, 'package.json'), original);
+  const res = spawnSync('npm', ['pkg', 'fix'], { cwd: dir, encoding: 'utf8' });
+  assert.equal(res.status, 0, res.stderr);
+  assert.deepEqual(JSON.parse(fs.readFileSync(path.join(dir, 'package.json'), 'utf8')), JSON.parse(original));
 });
 
 test('package and plugin descriptions match and name every harness', () => {
