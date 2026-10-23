@@ -3,7 +3,7 @@
   "description": "ceci job graph for Claude Code, Codex, and Grok.",
   "owner": {
     "name": "coldcanuk",
-    "email": "coldcanuk@users.noreply.github.com"
+    "email": "chuck@actvite.com"
   },
   "plugins": [
     {
@@ -12,7 +12,9 @@
       "description": "Job graph, human gates, GPU placement, and /rdap-q evidence calls. Invoke with /ceci.",
       "category": "development",
       "author": {
-        "name": "coldcanuk"
+        "name": "coldcanuk",
+        "email": "chuck@actvite.com",
+        "url": "https://actvite.com"
       },
       "homepage": "https://github.com/actviteai/ceci",
       "tags": [

@@ -1,14 +1,18 @@
 {
   "name": "@coldcanuk/ceci",
   "version": "1.0.0",
-  "description": "ceci \u2014 job graph, human gates, GPU placement, and /rdap-q evidence calls for AI coding agents. Invoke with /ceci. Claude Code, Codex, Grok, and Hermes.",
+  "description": "ceci — job graph, human gates, GPU placement, and /rdap-q evidence calls for AI coding agents. Invoke with /ceci. Claude Code, Codex, Grok, and Hermes.",
   "type": "commonjs",
   "main": "ceci-skill/SKILL.md",
   "bin": {
     "ceci": "./bin/ceci.js",
     "ceci-install": "./bin/ceci.js"
   },
-  "author": "coldcanuk",
+  "author": {
+    "name": "coldcanuk",
+    "email": "chuck@actvite.com",
+    "url": "https://actvite.com"
+  },
   "license": "GPL-3.0-or-later",
   "homepage": "https://github.com/actviteai/ceci#readme",
   "repository": {

@@ -5,7 +5,8 @@
   "description": "Job graph, human gates, GPU placement, and /rdap-q evidence calls. Invoke with /ceci.",
   "author": {
     "name": "coldcanuk",
-    "url": "https://github.com/coldcanuk"
+    "email": "chuck@actvite.com",
+    "url": "https://actvite.com"
   },
   "homepage": "https://github.com/actviteai/ceci",
   "repository": "https://github.com/actviteai/ceci",
