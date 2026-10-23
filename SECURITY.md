@@ -2,7 +2,7 @@
 
 ## Supported versions
 
-Only the latest release of `@coldcanuk/ceci` receives security fixes.
+Only the latest release of `@actvite/ceci` receives security fixes.
 
 ## Reporting a vulnerability
 
