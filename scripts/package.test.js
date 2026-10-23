@@ -146,3 +146,26 @@ test('repository links point at actviteai, not the old coldcanuk repos', () => {
   const res = spawnSync('git', ['grep', '-nE', '(^|[^@])coldcanuk/(ceci|rdapq)', '--', '.', ':!scripts/package.test.js'], { cwd: ROOT, encoding: 'utf8' });
   assert.equal(res.stdout, '', res.stdout);
 });
+
+test('.gitignore keeps harness folders local except the files ceci ships', () => {
+  const ignored = (rel) => spawnSync('git', ['check-ignore', '-q', '--no-index', rel], { cwd: ROOT }).status === 0;
+  for (const rel of [
+    '.claude/settings.local.json', '.claude/settings.json', '.claude/sessions/x', '.claude/commands/other.md', '.claude/skills/other/SKILL.md',
+    '.grok/sessions/x', '.grok/skills/other/SKILL.md', '.agents/other', '.agents/skills/other/SKILL.md',
+    '.agent/x', '.codex/x', '.copilot/x', '.ceci/x', '.rdapq/x', '.worktrees/x',
+  ]) assert.equal(ignored(rel), true, `${rel} should be ignored`);
+  for (const rel of ['.claude/commands/ceci.md', '.claude/skills/ceci', '.grok/rules.md', '.grok/skills/ceci', '.agents/skills/ceci']) {
+    assert.equal(ignored(rel), false, `${rel} must stay tracked`);
+  }
+  assert.equal(spawnSync('git', ['ls-files', '-ci', '--exclude-standard'], { cwd: ROOT, encoding: 'utf8' }).stdout, '');
+});
+
+test('package and plugin manifests name the actvite.com owner', () => {
+  const author = { name: 'coldcanuk', email: 'chuck@actvite.com', url: 'https://actvite.com' };
+  assert.deepEqual(pkg.author, author);
+  const market = require('../.claude-plugin/marketplace.json');
+  assert.equal(market.owner.email, author.email);
+  assert.deepEqual(market.plugins[0].author, author);
+  assert.deepEqual(require('../.claude-plugin/plugin.json').author, author);
+  assert.deepEqual(require('../plugins/ceci/plugin.json').author, author);
+});

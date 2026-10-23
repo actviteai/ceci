@@ -40,23 +40,37 @@ secrets.json
 # ------------------------------------------------------------------------------
 # AI agent & harness artifacts
 # ------------------------------------------------------------------------------
-# Claude Code
-.claude/history/
-.claude/sessions/
-.claude/cache/
-.claude/settings.local.json
+# Agent harness folders are local by default: settings, sessions, caches,
+# and other skills never get committed. Only the files this repository
+# ships are un-ignored.
+.claude/*
+!.claude/commands/
+.claude/commands/*
+!.claude/commands/ceci.md
+!.claude/skills/
+.claude/skills/*
+!.claude/skills/ceci
+.grok/*
+!.grok/rules.md
+!.grok/skills/
+.grok/skills/*
+!.grok/skills/ceci
+.agents/*
+!.agents/skills/
+.agents/skills/*
+!.agents/skills/ceci
+.agent/
+.codex/
+.copilot/
 *.claude.json
 
-# Codex, Grok, Hermes
-.codex/sessions/
-.grok/sessions/
+# Hermes
 .hermes/
 
-# Cline, Goose, Copilot, Cursor, Windsurf
+# Cline, Goose, Cursor, Windsurf
 .cline/history/
 .cline/sessions/
 .goose/
-.copilot/
 .cursor/
 .windsurf/
 
