@@ -2,7 +2,7 @@ name: release
 
 # Publishes @coldcanuk/ceci to npm on a v* tag only after the repository
 # variable NPM_PUBLISH is set to "true". Configure an npm Trusted Publisher
-# for coldcanuk/ceci (OIDC, no long-lived token) before flipping that variable.
+# for actviteai/ceci (OIDC, no long-lived token) before flipping that variable.
 on:
   push:
     tags: ['v*']

@@ -1,7 +1,7 @@
 # ceci
 
 [![npm](https://img.shields.io/npm/v/@coldcanuk/ceci.svg)](https://www.npmjs.com/package/@coldcanuk/ceci)
-[![ci](https://github.com/coldcanuk/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/coldcanuk/ceci/actions/workflows/ci.yml)
+[![ci](https://github.com/actviteai/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/actviteai/ceci/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 `/ceci` is the parent skill for a job graph. It decomposes a goal into jobs, writes that graph before any work starts, schedules the jobs whose dependencies are done, places local GPU work from a preference file you supply, and stops for a human before contact, posting, payment, or a price.
@@ -78,7 +78,7 @@ ceci status --work-dir ./run
 To install from GitHub instead of the npm registry:
 
 ```bash
-npx --yes github:coldcanuk/ceci install --all
+npx --yes github:actviteai/ceci install --all
 ```
 
 ## Invoke `/ceci`
@@ -520,7 +520,7 @@ From a clone, `node scripts/install.js --all` (or `npm run install:all`) does th
 Hermes from a URL, when the raw file is reachable:
 
 ```text
-hermes skills install https://raw.githubusercontent.com/coldcanuk/ceci/main/integrations/hermes/SKILL.md
+hermes skills install https://raw.githubusercontent.com/actviteai/ceci/main/integrations/hermes/SKILL.md
 ```
 
 That copy drops Claude's `disable-model-invocation` key, keeps the first sentence of the description inside Hermes' 57-character index, and names `scripts/ceci.js`, `references/*.md`, and `examples/gpu-prefs.yaml` so the installer fetches them. The slash command is `/ceci`.

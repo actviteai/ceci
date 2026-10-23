@@ -10,13 +10,13 @@
   },
   "author": "coldcanuk",
   "license": "GPL-3.0-or-later",
-  "homepage": "https://github.com/coldcanuk/ceci#readme",
+  "homepage": "https://github.com/actviteai/ceci#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/coldcanuk/ceci.git"
+    "url": "git+https://github.com/actviteai/ceci.git"
   },
   "bugs": {
-    "url": "https://github.com/coldcanuk/ceci/issues"
+    "url": "https://github.com/actviteai/ceci/issues"
   },
   "keywords": [
     "ceci",
