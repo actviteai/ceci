@@ -14,7 +14,7 @@ A clear description of the bug.
 The exact commands, with flags. For example:
 
 ```bash
-npx --yes @coldcanuk/ceci status --work-dir ./work
+npx --yes @actvite/ceci status --work-dir ./work
 ```
 
 **Expected**
@@ -24,7 +24,7 @@ What you expected to happen.
 Paste the command output, and `state.md` / `log.md` if relevant. Remove anything private first.
 
 **Environment**
-- ceci version (`npm ls -g @coldcanuk/ceci` or the git commit):
+- ceci version (`npm ls -g @actvite/ceci` or the git commit):
 - Node.js version (`node --version`):
 - OS:
 - Harness (Claude Code, Codex, Grok, Hermes, other):

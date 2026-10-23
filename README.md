@@ -1,13 +1,13 @@
 # ceci
 
-[![npm](https://img.shields.io/npm/v/@coldcanuk/ceci.svg)](https://www.npmjs.com/package/@coldcanuk/ceci)
+[![npm](https://img.shields.io/npm/v/@actvite/ceci.svg)](https://www.npmjs.com/package/@actvite/ceci)
 [![ci](https://github.com/actviteai/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/actviteai/ceci/actions/workflows/ci.yml)
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
 
 **ceci is an agent skill for Claude Code, Codex, Grok, Cline, Goose, and Hermes that turns a goal into a job graph and runs it with human-in-the-loop gates.** It writes every job to `state.md` before work starts, runs ready jobs in dependency order, stops for a human before contact, posting, payment, or pricing, places GPU jobs from a preference file, and accepts a code, data, or model change only when the [`/rdap-q`](https://github.com/actviteai/rdapq) evidence gate prints `COMPLETE`.
 
 ```bash
-npx --yes @coldcanuk/ceci install --all     # install the skill for every harness
+npx --yes @actvite/ceci install --all     # install the skill for every harness
 ```
 
 ```text
@@ -73,19 +73,19 @@ Pick one route. Each installs the same skill. `/ceci` is the slash command in ev
 
 ### npm (all harnesses)
 
-The npm package is [`@coldcanuk/ceci`](https://www.npmjs.com/package/@coldcanuk/ceci). It installs one command, `ceci`.
+The npm package is [`@actvite/ceci`](https://www.npmjs.com/package/@actvite/ceci). It installs one command, `ceci`.
 
 ```bash
 # Copy the skill into every harness home (Claude Code, Grok, Codex, Cline, Goose, Hermes)
-npx --yes @coldcanuk/ceci install --all
+npx --yes @actvite/ceci install --all
 
 # Or name the harnesses you want
-npx --yes @coldcanuk/ceci install --claude --codex
-npx --yes @coldcanuk/ceci install --cline
-npx --yes @coldcanuk/ceci install --goose
+npx --yes @actvite/ceci install --claude --codex
+npx --yes @actvite/ceci install --cline
+npx --yes @actvite/ceci install --goose
 
 # Or install the CLI globally
-npm install -g @coldcanuk/ceci
+npm install -g @actvite/ceci
 ceci install --all
 ceci init --work-dir ./run
 ceci status --work-dir ./run
@@ -238,7 +238,7 @@ Use `ceci log`. Do not append a second line for the same change, and do not writ
 
 ## CLI
 
-Run it as `ceci` after `npm install -g @coldcanuk/ceci`, as `npx --yes @coldcanuk/ceci <command>`, or with Node from a checkout or an installed skill directory:
+Run it as `ceci` after `npm install -g @actvite/ceci`, as `npx --yes @actvite/ceci <command>`, or with Node from a checkout or an installed skill directory:
 
 ```bash
 node ceci-skill/tool/ceci.js <command> --work-dir PATH

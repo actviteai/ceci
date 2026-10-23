@@ -16,7 +16,7 @@ function ceci(args, env = process.env) {
 }
 
 test('package.json is the published npm package', () => {
-  assert.equal(pkg.name, '@coldcanuk/ceci');
+  assert.equal(pkg.name, '@actvite/ceci');
   assert.equal(pkg.license, 'GPL-3.0-or-later');
   // One bin: npx runs it, and `ceci install` covers the installer.
   assert.deepEqual(pkg.bin, { ceci: 'bin/ceci.js' });
@@ -99,6 +99,11 @@ test('npm pack ships only tracked files, even from a dirty checkout', (t) => {
   assert.deepEqual(untracked, []);
 });
 
+test('the npm package is @actvite/ceci everywhere; nothing names @coldcanuk', () => {
+  const res = spawnSync('git', ['grep', '-n', '@coldcanuk', '--', '.', ':!scripts/package.test.js'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(res.stdout, '');
+});
+
 test('repository links point at actviteai, not the old coldcanuk repos', () => {
   const res = spawnSync('git', ['grep', '-nE', '(^|[^@])coldcanuk/(ceci|rdapq)', '--', '.', ':!scripts/package.test.js'], { cwd: ROOT, encoding: 'utf8' });
   assert.equal(res.stdout, '', res.stdout);
@@ -150,14 +155,14 @@ test('README and llms.txt list the same verified install commands', () => {
   const readme = fs.readFileSync(path.join(ROOT, 'README.md'), 'utf8');
   const llms = fs.readFileSync(path.join(ROOT, 'llms.txt'), 'utf8');
   for (const cmd of [
-    'npx --yes @coldcanuk/ceci install --all',
+    'npx --yes @actvite/ceci install --all',
     '/plugin marketplace add actviteai/ceci',
     '/plugin install ceci@ceci',
     'codex plugin marketplace add actviteai/ceci',
     'codex plugin add ceci@ceci',
     'grok plugin install actviteai/ceci#plugins/ceci',
-    'npx --yes @coldcanuk/ceci install --cline',
-    'npx --yes @coldcanuk/ceci install --goose',
+    'npx --yes @actvite/ceci install --cline',
+    'npx --yes @actvite/ceci install --goose',
   ]) {
     assert.ok(readme.includes(cmd), `README missing ${cmd}`);
     assert.ok(llms.includes(cmd), `llms.txt missing ${cmd}`);
