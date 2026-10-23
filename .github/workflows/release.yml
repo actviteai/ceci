@@ -1,34 +1,24 @@
 name: release
 
-# Publishes @coldcanuk/ceci to npm on a v* tag only after the repository
-# variable NPM_PUBLISH is set to "true". Configure an npm Trusted Publisher
-# for actviteai/ceci (OIDC, no long-lived token) before flipping that variable.
+# Verifies a v* tag. This workflow never publishes and holds no npm token:
+# a maintainer stages the package and publishes it by hand with npm 2FA.
 on:
   push:
     tags: ['v*']
 
 permissions:
   contents: read
-  id-token: write
 
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version: 24
       - run: npm test
-
-  publish:
-    needs: verify
-    if: vars.NPM_PUBLISH == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org
-      - run: npm publish --access public --provenance
+      - name: Tag matches package.json version
+        run: test "v$(node -p "require('./package.json').version")" = "${GITHUB_REF_NAME}"

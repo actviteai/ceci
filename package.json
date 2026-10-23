@@ -1,7 +1,7 @@
 {
   "name": "@coldcanuk/ceci",
   "version": "1.0.0",
-  "description": "ceci — job graph, human gates, GPU placement, and /rdap-q evidence calls for AI coding agents. Invoke with /ceci. Claude Code, Codex, Grok, and Hermes.",
+  "description": "ceci \u2014 job graph, human gates, GPU placement, and /rdap-q evidence calls for AI coding agents. Invoke with /ceci. Claude Code, Codex, Grok, and Hermes.",
   "type": "commonjs",
   "main": "ceci-skill/SKILL.md",
   "bin": {
@@ -61,10 +61,13 @@
     "AGENTS.md",
     "CLAUDE.md",
     "CODE_OF_CONDUCT.md",
+    "SECURITY.md",
     ".claude-plugin",
-    ".claude",
-    ".grok",
-    ".agents",
+    ".claude/commands/ceci.md",
+    ".claude/skills/ceci",
+    ".grok/rules.md",
+    ".grok/skills/ceci",
+    ".agents/skills/ceci",
     "!**/*.test.js"
   ]
 }

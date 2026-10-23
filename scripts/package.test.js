@@ -116,3 +116,28 @@ test('npm pack ships the skill, the harness mounts, and no tests', () => {
   for (const rel of links.LINKS) assert.equal(fs.lstatSync(path.join(ROOT, rel)).isSymbolicLink(), true);
   assert.equal(fs.existsSync(links.STATE), false);
 });
+
+test('npm pack ships only tracked files, even from a dirty checkout', (t) => {
+  const planted = ['.claude/settings.local.json', '.claude/sessions/planted.txt', '.agents/planted.txt', '.grok/sessions/planted.txt']
+    .filter((rel) => !fs.existsSync(path.join(ROOT, rel)));
+  t.after(() => {
+    for (const rel of planted) {
+      fs.rmSync(path.join(ROOT, rel), { force: true });
+      const dir = path.dirname(path.join(ROOT, rel));
+      if (fs.existsSync(dir) && fs.readdirSync(dir).length === 0) fs.rmdirSync(dir);
+    }
+  });
+  for (const rel of planted) {
+    fs.mkdirSync(path.dirname(path.join(ROOT, rel)), { recursive: true });
+    fs.writeFileSync(path.join(ROOT, rel), 'planted\n');
+  }
+  const tracked = new Set(spawnSync('git', ['ls-files'], { cwd: ROOT, encoding: 'utf8' }).stdout.split('\n').filter(Boolean));
+  const res = spawnSync('npm', ['pack', '--dry-run', '--json'], { cwd: ROOT, encoding: 'utf8' });
+  assert.equal(res.status, 0, res.stderr);
+  const untracked = JSON.parse(res.stdout)[0].files.map((f) => f.path).filter((rel) => {
+    if (rel === 'package.json' || tracked.has(rel)) return false;
+    const link = links.LINKS.find((l) => rel.startsWith(`${l}/`));
+    return !(link && tracked.has(`ceci-skill/${rel.slice(link.length + 1)}`));
+  });
+  assert.deepEqual(untracked, []);
+});

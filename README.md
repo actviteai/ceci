@@ -538,7 +538,11 @@ node scripts/sync-integrations.js --check
 
 ## Releasing
 
-Bump `version` in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and `plugins/ceci/plugin.json`, then push a `v*` tag. [release.yml](.github/workflows/release.yml) runs `npm test`, and it publishes with npm provenance only when the repository variable `NPM_PUBLISH` is `true` and an npm Trusted Publisher is set up for this repository.
+Bump `version` in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and `plugins/ceci/plugin.json` (`npm test` fails if they differ), then push a `v*` tag. [release.yml](.github/workflows/release.yml) only verifies the tag: it runs `npm test` and checks that the tag matches `package.json`. CI holds no npm token and never publishes. A maintainer stages the package and publishes it by hand with npm two-factor authentication.
+
+## Security
+
+Report vulnerabilities privately; see [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
