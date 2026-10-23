@@ -1,0 +1,34 @@
+name: release
+
+# Publishes @coldcanuk/ceci to npm on a v* tag only after the repository
+# variable NPM_PUBLISH is set to "true". Configure an npm Trusted Publisher
+# for coldcanuk/ceci (OIDC, no long-lived token) before flipping that variable.
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm test
+
+  publish:
+    needs: verify
+    if: vars.NPM_PUBLISH == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: npm publish --access public --provenance

@@ -1,5 +1,9 @@
 # ceci
 
+[![npm](https://img.shields.io/npm/v/@coldcanuk/ceci.svg)](https://www.npmjs.com/package/@coldcanuk/ceci)
+[![ci](https://github.com/coldcanuk/ceci/actions/workflows/ci.yml/badge.svg)](https://github.com/coldcanuk/ceci/actions/workflows/ci.yml)
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](LICENSE)
+
 `/ceci` is the parent skill for a job graph. It decomposes a goal into jobs, writes that graph before any work starts, schedules the jobs whose dependencies are done, places local GPU work from a preference file you supply, and stops for a human before contact, posting, payment, or a price.
 
 It does not grade its own code, data, or scoring jobs. Those jobs call [`/rdap-q`](https://github.com/coldcanuk/rdapq) and store the gate token that engine prints. `COMPLETE` is the only token that can finish them.
@@ -50,6 +54,32 @@ ceci/
 - Node.js 22 or newer. `ceci-skill/tool/ceci.js` has no package dependencies. `ceci-skill/package.json` sets `"type": "commonjs"` so that file still runs when an ancestor `package.json` sets `"type": "module"`.
 - Git, only if you are changing this repository. See [AGENTS.md](AGENTS.md).
 - `/rdap-q` available to the same harness when a job changes code, data, a pipeline, or a model. A `rdapq` binary on `PATH` is the same engine. ceci does not embed a path to it.
+
+## Install
+
+The npm package is [`@coldcanuk/ceci`](https://www.npmjs.com/package/@coldcanuk/ceci). It installs one command, `ceci`.
+
+```bash
+# Copy the skill into every harness home (Claude Code, Grok, Codex, Hermes)
+npx --yes @coldcanuk/ceci install --all
+
+# Or name the harnesses you want
+npx --yes @coldcanuk/ceci install --claude --codex
+
+# Or install the CLI globally
+npm install -g @coldcanuk/ceci
+ceci install --all
+ceci init --work-dir ./run
+ceci status --work-dir ./run
+```
+
+`ceci install` replaces an existing ceci skill directory with a fresh copy. Each copy is staged first and renamed into place only after `SKILL.md` is present. Every other `ceci` command (`init`, `status`, `log`, `resolve-gpu`) goes to `ceci-skill/tool/ceci.js`; see [CLI](#cli).
+
+To install from GitHub instead of the npm registry:
+
+```bash
+npx --yes github:coldcanuk/ceci install --all
+```
 
 ## Invoke `/ceci`
 
@@ -457,10 +487,12 @@ A later invocation continues only from that gate, and only with a price you actu
 ## Tests
 
 ```bash
-node --test ceci-skill/tool/ceci.test.js
+npm test
 ```
 
-The file checks init, GPU priority and `--busy`, one-line logs, and `status` grouping. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run.
+`npm test` checks that the generated harness copies match `ceci-skill/`, then runs `ceci-skill/tool/ceci.test.js`, `scripts/harness.test.js`, and `scripts/package.test.js`. The package test covers the `ceci` bin, the npm `files` list, and the `prepack` step that turns the `.claude`, `.agents`, and `.grok` skill symlinks into real directories for the tarball.
+
+`ceci-skill/tool/ceci.test.js` checks init, GPU priority and `--busy`, one-line logs, and `status` grouping. The scoring scenario calls a real RDAP-Q engine when `RDAPQ` points at `rdapq.js` or when `rdapq` is on `PATH`. That scenario requires the stored token to be `COMPLETE`, requires `offer.md` to be absent, and requires `state.md` not to contain a price. Without an engine the scenario is skipped; the other tests still run.
 
 ## Harnesses
 
@@ -476,12 +508,14 @@ The same skill loads in Hermes, Claude Code, Grok, and Codex. Generated trees ar
 Claude Code, Codex, and Grok can also install the marketplace plugin. [.claude-plugin/marketplace.json](.claude-plugin/marketplace.json) points at [plugins/ceci](plugins/ceci), whose `skills/ceci` directory is a byte copy of `ceci-skill/`, not a symlink.
 
 ```bash
-node scripts/install.js --claude
-node scripts/install.js --grok
-node scripts/install.js --codex
-node scripts/install.js --hermes
-node scripts/install.js --all
+npx --yes @coldcanuk/ceci install --claude
+npx --yes @coldcanuk/ceci install --grok
+npx --yes @coldcanuk/ceci install --codex
+npx --yes @coldcanuk/ceci install --hermes
+npx --yes @coldcanuk/ceci install --all
 ```
+
+From a clone, `node scripts/install.js --all` (or `npm run install:all`) does the same thing.
 
 Hermes from a URL, when the raw file is reachable:
 
@@ -501,3 +535,19 @@ node scripts/sync-integrations.js --check
 ## Agents changing this repository
 
 [AGENTS.md](AGENTS.md) is the git rule. Do not commit on `main`. Use a new worktree, commit there, push, and merge a pull request into `main`.
+
+## Releasing
+
+Bump `version` in `package.json`, `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, and `plugins/ceci/plugin.json`, then push a `v*` tag. [release.yml](.github/workflows/release.yml) runs `npm test`, and it publishes with npm provenance only when the repository variable `NPM_PUBLISH` is `true` and an npm Trusted Publisher is set up for this repository.
+
+## Contributing
+
+Issues and pull requests are welcome. Use the [issue templates](.github/ISSUE_TEMPLATE) and the [pull request template](.github/pull_request_template.md). Run `npm test` before you open a pull request. After you change `ceci-skill/`, run `npm run sync`.
+
+## Code of Conduct
+
+be chill. be cool. treat others as you would want to be treated. have a sense of humor, life is too short. See [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+
+## License
+
+ceci is free software. You can redistribute it and modify it under the terms of the [GNU General Public License v3.0](LICENSE) as published by the Free Software Foundation, either version 3 of the License or (at your option) any later version (`GPL-3.0-or-later`).
